@@ -130,8 +130,15 @@ func ParseInputFile(inputFilePath string) ([]struct {
 
 func loadCache(outputFilePath string) (map[string]interface{}, error) {
 	cache := make(map[string]interface{})
-	if _, err := os.Stat(outputFilePath); err != nil {
-		return nil, fmt.Errorf("failed to stat output file: %w", err)
+	if _, err := os.Stat(outputFilePath); os.IsNotExist(err) {
+		log.Printf("Output file %s does not exist. Creating it.", outputFilePath)
+		emptyFile, createErr := os.Create(outputFilePath)
+		if createErr != nil {
+			return nil, fmt.Errorf("failed to create output file: %w", createErr)
+		}
+		if closeErr := emptyFile.Close(); closeErr != nil {
+			return nil, fmt.Errorf("failed to close output file: %w", closeErr)
+		}
 	}
 
 	cacheData, cacheReadErr := os.ReadFile(outputFilePath)
