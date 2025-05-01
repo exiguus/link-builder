@@ -32,13 +32,13 @@ This Go program processes a JSON file containing messages with URLs, validates t
 #### Process URLs (Import/Export)
 
 ```bash
-go run main.go -import-input=import/export.json -import-output=dist/urls.json
+go run . -import-input=import/export.json -import-output=dist/urls.json
 ```
 
 #### Generate Link Previews
 
 ```bash
-go run main.go -generate-previews -preview-input=dist/urls.json -preview-output=dist/previews.json
+go run . -generate-previews -preview-input=dist/urls.json -preview-output=dist/previews.json
 ```
 
 ### Environment Variables
@@ -72,13 +72,17 @@ export DEBUG=true
 Run the following command to execute all tests:
 
 ```bash
-go test -v
+go test -v .
 ```
 
 ### Project Structure
 
 - `main.go`: Main program logic.
 - `main_test.go`: Unit tests for the program.
+- `utils.go`: Utility functions for file operations, error handling, and URL validation.
+- `validation.go`: Functions for validating and processing URLs, including concurrency support.
+- `previews.go`: Logic for generating link previews from URLs.
+- `types.go`: Shared data structures and types used across the project.
 - `import/export.json`: Example input file.
 - `dist/urls.json`: Output file (generated).
 - `dist/previews.json`: Output file for link previews (generated).

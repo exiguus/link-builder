@@ -127,7 +127,7 @@ func TestReadJSONFile(t *testing.T) {
 	if _, err := tempFile.Write([]byte(mockData)); err != nil {
 		t.Fatalf("Failed to write to temporary file: %v", err)
 	}
-	tempFile.Close()
+	defer tempFile.Close()
 
 	var input struct {
 		Messages []struct {
