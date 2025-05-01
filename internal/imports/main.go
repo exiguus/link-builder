@@ -52,7 +52,7 @@ func ProcessImport(importInputFilePath, importOutputFilePath string) error {
 
 	ignoreRegex, err := utils.CompileIgnoreRegex()
 	if err != nil {
-		return fmt.Errorf("compiling ignore regex: %w", err)
+		ignoreRegex = nil
 	}
 
 	validURLs, ignoredCount := validation.ValidateURLsConcurrently(

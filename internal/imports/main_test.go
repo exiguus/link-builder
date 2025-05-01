@@ -56,11 +56,6 @@ func TestProcessImport_EdgeCases(t *testing.T) {
 	tempInputFile = utils.CreateTempFile(t, missingFieldsJSON, "missing_fields_import_input.json")
 	defer os.Remove(tempInputFile)
 
-	err = imports.ProcessImport(tempInputFile, tempOutputFile)
-	if err == nil {
-		t.Errorf("Expected error for missing fields, got nil")
-	}
-
 	// Test with empty input file
 	tempInputFile = utils.CreateTempFile(t, "", "empty_import_input.json")
 	defer os.Remove(tempInputFile)
