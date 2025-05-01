@@ -1,35 +1,27 @@
-package main
+// Change package name to `validation`
+package validation
 
 import (
-	"context"
 	"log"
 	"net/url"
 	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
-
-	"golang.org/x/time/rate"
+	"urls-processor/internal/utils"
 )
 
-func validateURLsConcurrently(urls []string, validateHead bool, ignoreRegex *regexp.Regexp) (map[string]bool, int) {
+func ValidateURLsConcurrently(urls []string, ignoreRegex *regexp.Regexp) (map[string]bool, int) {
 	validURLs := make(map[string]bool)
 	var mutex sync.Mutex
 	var ignoredCount int32
 
-	rateLimiter := rate.NewLimiter(rate.Limit(10), 1)
 	processURL := func(rawURL string) {
 		if ignoreRegex != nil && ignoreRegex.MatchString(rawURL) {
 			atomic.AddInt32(&ignoredCount, 1)
 			return
 		}
-		if validateHead {
-			if err := rateLimiter.Wait(context.Background()); err != nil {
-				log.Printf("Rate limiter error: %v", err)
-				return
-			}
-		}
-		if isValidURL(rawURL, validateHead) {
+		if validateURL(rawURL) {
 			mutex.Lock()
 			validURLs[rawURL] = true
 			mutex.Unlock()
@@ -49,7 +41,11 @@ func validateURLsConcurrently(urls []string, validateHead bool, ignoreRegex *reg
 	return validURLs, int(ignoredCount)
 }
 
-func removeSessionQueryStrings(validURLs map[string]bool) map[string]bool {
+func validateURL(url string) bool {
+	return utils.IsValidURL(url)
+}
+
+func RemoveSessionQueryStrings(validURLs map[string]bool) map[string]bool {
 	updatedURLs := make(map[string]bool)
 	for urlStr := range validURLs {
 		if semicolonIndex := strings.Index(urlStr, ";jsessionid="); semicolonIndex != -1 {
@@ -73,7 +69,7 @@ func removeSessionQueryStrings(validURLs map[string]bool) map[string]bool {
 	return updatedURLs
 }
 
-func warnIfURLsContainSession(validURLs map[string]bool) {
+func WarnIfURLsContainSession(validURLs map[string]bool) {
 	for url := range validURLs {
 		if strings.Contains(strings.ToLower(url), "session") {
 			log.Printf("Warning: URL contains 'session': %s", url)
@@ -81,7 +77,7 @@ func warnIfURLsContainSession(validURLs map[string]bool) {
 	}
 }
 
-func ensureUniqueURLs(validURLs map[string]bool, allURLs []struct {
+func EnsureUniqueURLs(validURLs map[string]bool, allURLs []struct {
 	ID   int    `json:"id"`
 	Date string `json:"date"`
 	URL  string `json:"url"`

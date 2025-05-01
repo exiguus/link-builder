@@ -1,31 +1,39 @@
-package main
+package previews
 
 import (
 	"encoding/json"
 	"log"
 	"os"
+	"urls-processor/internal/types"
+	"urls-processor/internal/utils"
 
 	"github.com/tiendc/go-linkpreview"
 )
 
-func generateLinkPreviews(inputFilePath, outputFilePath string) {
+func GenerateLinkPreviews(inputFilePath, outputFilePath string) {
 	data, err := os.ReadFile(inputFilePath)
-	handleError(err, "Failed to read input file")
+	if err != nil {
+		utils.HandleError(err, "Failed to read input file")
+	}
+
+	if !json.Valid(data) {
+		log.Fatalf("Input JSON is invalid: %s", inputFilePath)
+	}
 
 	var urlObjects []struct {
 		ID   int    `json:"id"`
 		Date string `json:"date"`
 		URL  string `json:"url"`
 	}
-	handleError(json.Unmarshal(data, &urlObjects), "Failed to parse input JSON")
+	utils.HandleError(json.Unmarshal(data, &urlObjects), "Failed to parse input JSON")
 
 	cache := make(map[string]interface{})
 	if _, err := os.Stat(outputFilePath); err == nil {
 		cacheData, err := os.ReadFile(outputFilePath)
-		handleError(err, "Failed to read output file")
+		utils.HandleError(err, "Failed to read output file")
 		if len(cacheData) > 0 {
 			if err := json.Unmarshal(cacheData, &cache); err != nil {
-				var cacheArray []LinkPreviewOutput
+				var cacheArray []types.LinkPreviewOutput
 				if err := json.Unmarshal(cacheData, &cacheArray); err == nil {
 					for _, item := range cacheArray {
 						cache[item.URL] = item.Preview
@@ -33,7 +41,7 @@ func generateLinkPreviews(inputFilePath, outputFilePath string) {
 				} else if string(cacheData) == "[]" {
 					cache = make(map[string]interface{})
 				} else {
-					handleError(err, "Failed to parse output JSON")
+					utils.HandleError(err, "Failed to parse output JSON")
 				}
 			}
 		}
@@ -49,7 +57,7 @@ func generateLinkPreviews(inputFilePath, outputFilePath string) {
 	toProcessCount := totalURLs - cachedCount
 	log.Printf("Total URLs: %d, Cached: %d, To Process: %d", totalURLs, cachedCount, toProcessCount)
 
-	output := []LinkPreviewOutput{}
+	output := []types.LinkPreviewOutput{}
 	currentCount := 0
 	for _, urlObj := range urlObjects {
 		currentCount++
@@ -77,7 +85,7 @@ func generateLinkPreviews(inputFilePath, outputFilePath string) {
 			cache[urlObj.URL] = preview
 		}
 
-		output = append(output, LinkPreviewOutput{
+		output = append(output, types.LinkPreviewOutput{
 			ID:      urlObj.ID,
 			Date:    urlObj.Date,
 			URL:     urlObj.URL,
@@ -85,8 +93,8 @@ func generateLinkPreviews(inputFilePath, outputFilePath string) {
 		})
 
 		outputData, err := json.MarshalIndent(output, "", "  ")
-		handleError(err, "Failed to marshal intermediate output JSON")
-		handleError(os.WriteFile(outputFilePath, outputData, 0644), "Failed to write intermediate output file")
+		utils.HandleError(err, "Failed to marshal intermediate output JSON")
+		utils.HandleError(os.WriteFile(outputFilePath, outputData, 0644), "Failed to write intermediate output file")
 	}
 
 	log.Printf("Link previews successfully generated and saved to %s", outputFilePath)

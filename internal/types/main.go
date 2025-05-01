@@ -1,4 +1,4 @@
-package main
+package types
 
 type LinkPreviewOutput struct {
 	ID      int         `json:"id"`

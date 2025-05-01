@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"encoding/json"
@@ -12,13 +12,14 @@ import (
 
 var httpClient = &http.Client{}
 
-func handleError(err error, message string) {
+// Exported HandleError function
+func HandleError(err error, message string) {
 	if err != nil {
 		log.Fatalf("%s: %v", message, err)
 	}
 }
 
-func readJSONFile(filePath string, v interface{}) error {
+func ReadJSONFile(filePath string, v interface{}) error {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to read file %s: %w", filePath, err)
@@ -29,7 +30,7 @@ func readJSONFile(filePath string, v interface{}) error {
 	return nil
 }
 
-func writeJSONFile(filePath string, v interface{}) error {
+func WriteJSONFile(filePath string, v interface{}) error {
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal JSON to file %s: %w", filePath, err)
@@ -43,21 +44,15 @@ func writeJSONFile(filePath string, v interface{}) error {
 	return nil
 }
 
-func isValidURL(rawURL string, validateHead bool) bool {
+func IsValidURL(rawURL string) bool {
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") || parsedURL.Host == "" {
 		return false
 	}
-	if validateHead {
-		resp, err := httpClient.Head(rawURL)
-		if err != nil || resp.StatusCode < 200 || resp.StatusCode >= 400 {
-			return false
-		}
-	}
 	return true
 }
 
-func compileIgnoreRegex() (*regexp.Regexp, error) {
+func CompileIgnoreRegex() (*regexp.Regexp, error) {
 	ignorePattern := os.Getenv("IMPORT_IGNORE")
 	if ignorePattern == "" {
 		return nil, nil

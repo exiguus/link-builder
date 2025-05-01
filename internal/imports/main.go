@@ -1,11 +1,13 @@
-package main
+package imports
 
 import (
 	"log"
 	"os"
+	"urls-processor/internal/utils"
+	"urls-processor/internal/validation"
 )
 
-func processImport(importInputFilePath, importOutputFilePath string, validateHead bool) {
+func ProcessImport(importInputFilePath, importOutputFilePath string) {
 	var input struct {
 		Messages []struct {
 			Date         string `json:"date"`
@@ -15,8 +17,8 @@ func processImport(importInputFilePath, importOutputFilePath string, validateHea
 			} `json:"text_entities"`
 		} `json:"messages"`
 	}
-	err := readJSONFile(importInputFilePath, &input)
-	handleError(err, "Failed to read and parse input JSON file")
+	err := utils.ReadJSONFile(importInputFilePath, &input)
+	utils.HandleError(err, "Failed to read and parse input JSON file")
 
 	allURLs := []struct {
 		ID   int    `json:"id"`
@@ -45,10 +47,10 @@ func processImport(importInputFilePath, importOutputFilePath string, validateHea
 		}
 	}
 
-	ignoreRegex, err := compileIgnoreRegex()
-	handleError(err, "Failed to compile ignore regex")
+	ignoreRegex, err := utils.CompileIgnoreRegex()
+	utils.HandleError(err, "Failed to compile ignore regex")
 
-	validURLs, ignoredCount := validateURLsConcurrently(
+	validURLs, ignoredCount := validation.ValidateURLsConcurrently(
 		func() []string {
 			urls := make([]string, len(allURLs))
 			for i, urlObj := range allURLs {
@@ -56,12 +58,11 @@ func processImport(importInputFilePath, importOutputFilePath string, validateHea
 			}
 			return urls
 		}(),
-		validateHead,
 		ignoreRegex,
 	)
 
-	validURLs = removeSessionQueryStrings(validURLs)
-	validURLs = ensureUniqueURLs(validURLs, allURLs)
+	validURLs = validation.RemoveSessionQueryStrings(validURLs)
+	validURLs = validation.EnsureUniqueURLs(validURLs, allURLs)
 
 	// Log statistics
 	totalURLs := len(allURLs)
@@ -82,8 +83,8 @@ func processImport(importInputFilePath, importOutputFilePath string, validateHea
 		}
 	}
 
-	err = writeJSONFile(importOutputFilePath, filteredURLs)
-	handleError(err, "Failed to write output JSON file")
+	err = utils.WriteJSONFile(importOutputFilePath, filteredURLs)
+	utils.HandleError(err, "Failed to write output JSON file")
 
 	log.Printf("URLs successfully processed and saved to %s", importOutputFilePath)
 }
