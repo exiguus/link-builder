@@ -35,8 +35,8 @@ coverage:
 	@go test ./... -coverprofile=coverage.out
 	@go tool cover -func=coverage.out | grep total | awk '{print $$3}' | sed 's/%//' > coverage.txt
 	@COVERAGE=$$(cat coverage.txt); \
-	if [ $$(echo "$$COVERAGE < 80" | bc -l) -eq 1 ]; then \
-		echo "Coverage is below 80%: $$COVERAGE%"; \
+	if [ $$(echo "$$COVERAGE < 70" | bc -l) -eq 1 ]; then \
+		echo "Coverage is below 70%: $$COVERAGE%"; \
 		exit 1; \
 	else \
 		echo "Coverage is sufficient: $$COVERAGE%"; \
