@@ -24,7 +24,7 @@ lint:
 	@echo "Running golangci-lint..."
 	@command -v golangci-lint >/dev/null 2>&1 || { \
 		echo "Installing golangci-lint..."; \
-		go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s v2.1.5; \
 	}
 	@golangci-lint run ./...
 
