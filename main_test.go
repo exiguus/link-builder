@@ -1,20 +1,19 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
 )
 
 func setupMockFiles(t *testing.T, inputData string, inputFileName string) string {
-	tempFile, err := ioutil.TempFile("", inputFileName)
+	tempFile, err := os.CreateTemp(t.TempDir(), inputFileName)
 	if err != nil {
 		t.Fatalf("Failed to create temporary file: %v", err)
 	}
 
-	if _, err := tempFile.Write([]byte(inputData)); err != nil {
-		t.Fatalf("Failed to write to temporary file: %v", err)
+	if _, writeErr := tempFile.WriteString(inputData); writeErr != nil {
+		t.Fatalf("Failed to write to temporary file: %v", writeErr)
 	}
 	tempFile.Close()
 
@@ -40,7 +39,14 @@ func TestMainProgram(t *testing.T) {
 		mockOutputFile := "mock_import_output.json"
 		defer os.Remove(mockOutputFile)
 
-		cmd := exec.Command("go", "run", ".", "-import-urls", "-import-input="+mockInputFile, "-import-output="+mockOutputFile)
+		cmd := exec.Command(
+			"go",
+			"run",
+			".",
+			"-import-urls",
+			"-import-input="+mockInputFile,
+			"-import-output="+mockOutputFile,
+		)
 		cmd.Env = append(os.Environ(), "DEBUG=true")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
@@ -59,15 +65,18 @@ func TestMainProgram(t *testing.T) {
 		mockOutputFile := "mock_preview_output.json"
 		defer os.Remove(mockOutputFile)
 
-		cmd := exec.Command("go", "run", ".", "-generate-preview", "-preview-input="+mockInputFile, "-preview-output="+mockOutputFile)
+		cmd := exec.Command(
+			"go",
+			"run",
+			".",
+			"-generate-preview",
+			"-preview-input="+mockInputFile,
+			"-preview-output="+mockOutputFile,
+		)
 		cmd.Env = append(os.Environ(), "DEBUG=true")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			t.Fatalf("Failed to run generate-preview: %v\nOutput: %s", err, string(output))
 		}
 	})
-}
-
-func createTempFile(t *testing.T, mockInput, s string) any {
-	panic("unimplemented")
 }

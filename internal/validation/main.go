@@ -1,4 +1,4 @@
-// Change package name to `validation`
+// Package validation provides utilities for validating URLs and processing them concurrently.
 package validation
 
 import (
@@ -45,7 +45,7 @@ func ValidateURLsConcurrently(urls []string, ignoreRegex *regexp.Regexp) (map[st
 	}
 
 	workerCount := 10
-	for i := 0; i < workerCount; i++ {
+	for range make([]struct{}, workerCount) {
 		go worker()
 	}
 

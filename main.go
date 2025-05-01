@@ -21,12 +21,32 @@ type Config struct {
 func loadConfig() Config {
 	config := Config{}
 
-	flag.StringVar(&config.ImportInputFilePath, "import-input", "imports/export.json", "Path to the input JSON file for import/export")
-	flag.StringVar(&config.ImportOutputFilePath, "import-output", "dist/urls.json", "Path to the output JSON file for import/export")
+	flag.StringVar(
+		&config.ImportInputFilePath,
+		"import-input",
+		"imports/export.json",
+		"Path to the input JSON file for import/export",
+	)
+	flag.StringVar(
+		&config.ImportOutputFilePath,
+		"import-output",
+		"dist/urls.json",
+		"Path to the output JSON file for import/export",
+	)
 	flag.BoolVar(&config.ProcessImports, "import-urls", false, "Import URLs from import/export JSON file")
 
-	flag.StringVar(&config.PreviewInputFilePath, "preview-input", "dist/urls.json", "Path to the input JSON file containing URLs for previews")
-	flag.StringVar(&config.PreviewOutputFilePath, "preview-output", "dist/previews.json", "Path to the output JSON file for link previews")
+	flag.StringVar(
+		&config.PreviewInputFilePath,
+		"preview-input",
+		"dist/urls.json",
+		"Path to the input JSON file containing URLs for previews",
+	)
+	flag.StringVar(
+		&config.PreviewOutputFilePath,
+		"preview-output",
+		"dist/previews.json",
+		"Path to the output JSON file for link previews",
+	)
 	flag.BoolVar(&config.GeneratePreviews, "generate-preview", false, "Generate link previews from URLs")
 
 	flag.Parse()
@@ -48,7 +68,11 @@ func main() {
 	}
 
 	if config.GeneratePreviews {
-		if err := previews.GenerateLinkPreviews(config.PreviewInputFilePath, config.PreviewOutputFilePath, previews.DefaultLinkPreviewer{}); err != nil {
+		if err := previews.GenerateLinkPreviews(
+			config.PreviewInputFilePath,
+			config.PreviewOutputFilePath,
+			previews.DefaultLinkPreviewer{},
+		); err != nil {
 			log.Printf("Error generating link previews: %v", err)
 			os.Exit(1)
 		}
@@ -57,7 +81,10 @@ func main() {
 	}
 
 	if config.ProcessImports {
-		if err := imports.ProcessImport(config.ImportInputFilePath, config.ImportOutputFilePath); err != nil {
+		if err := imports.ProcessImport(
+			config.ImportInputFilePath,
+			config.ImportOutputFilePath,
+		); err != nil {
 			log.Printf("Error processing imports: %v", err)
 			os.Exit(1)
 		}

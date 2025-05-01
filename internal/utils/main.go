@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -9,7 +10,7 @@ import (
 	"regexp"
 )
 
-// Exported HandleError function
+// HandleError handles errors by logging them with context.
 func HandleError(err error, context string) {
 	if err != nil {
 		log.Printf("[ERROR] %s: %v", context, err)
@@ -21,14 +22,14 @@ func ReadJSONFile(filePath string, v interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
-	if err := json.Unmarshal(data, v); err != nil {
-		return fmt.Errorf("failed to parse JSON from file %s: %w", filePath, err)
+	if readErr := json.Unmarshal(data, v); readErr != nil {
+		return fmt.Errorf("failed to parse JSON from file %s: %w", filePath, readErr)
 	}
 	return nil
 }
 
 func CreateDirectoryIfNotExists(dirPath string) error {
-	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
+	if err := os.MkdirAll(dirPath, 0750); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", dirPath, err)
 	}
 	return nil
@@ -40,12 +41,12 @@ func WriteJSONFile(filePath string, v interface{}) error {
 		return fmt.Errorf("failed to marshal JSON to file %s: %w", filePath, err)
 	}
 	dir := "dist"
-	if err := CreateDirectoryIfNotExists(dir); err != nil {
-		return err
+	if dirErr := CreateDirectoryIfNotExists(dir); dirErr != nil {
+		return dirErr
 	}
 
-	if err := os.WriteFile(filePath, data, 0644); err != nil {
-		return fmt.Errorf("failed to write file %s: %w", filePath, err)
+	if writeErr := os.WriteFile(filePath, data, 0600); writeErr != nil {
+		return fmt.Errorf("failed to write file %s: %w", filePath, writeErr)
 	}
 	return nil
 }
@@ -61,7 +62,7 @@ func IsValidURL(rawURL string) bool {
 func CompileIgnoreRegex() (*regexp.Regexp, error) {
 	ignorePattern := os.Getenv("IMPORT_IGNORE")
 	if ignorePattern == "" {
-		return nil, nil
+		return nil, errors.New("no valid data found")
 	}
 	return regexp.Compile(ignorePattern)
 }

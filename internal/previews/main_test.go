@@ -1,34 +1,12 @@
 package previews_test
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"link-builder/internal/previews"
 	"link-builder/internal/utils"
 )
-
-func setupPreviewTestFiles(t *testing.T, inputData string, inputFileName string) (string, string) {
-	tempDir := t.TempDir()
-	inputFilePath := filepath.Join(tempDir, inputFileName)
-	outputFilePath := filepath.Join(tempDir, "mock_output.json")
-
-	if err := ioutil.WriteFile(inputFilePath, []byte(inputData), 0644); err != nil {
-		t.Fatalf("Failed to write input file: %v", err)
-	}
-
-	return inputFilePath, outputFilePath
-}
-
-func validateJSON(t *testing.T, jsonData string) {
-	var temp interface{}
-	if err := json.Unmarshal([]byte(jsonData), &temp); err != nil {
-		t.Fatalf("Invalid JSON provided: %v", err)
-	}
-}
 
 func TestGenerateLinkPreviews(t *testing.T) {
 	mockInput := `[{"id": 1, "date": "2025-05-01", "url": "http://example.com"}]`
@@ -49,8 +27,8 @@ func TestGenerateLinkPreviews(t *testing.T) {
 		URL     string      `json:"url"`
 		Preview interface{} `json:"preview"`
 	}
-	if err := utils.ReadJSONFile(tempOutputFile, &result); err != nil {
-		t.Errorf("Failed to read output JSON file: %v", err)
+	if readErr := utils.ReadJSONFile(tempOutputFile, &result); readErr != nil {
+		t.Errorf("Failed to read output JSON file: %v", readErr)
 	}
 
 	if len(result) != 1 || result[0].URL != "http://example.com" {

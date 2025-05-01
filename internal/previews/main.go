@@ -2,6 +2,7 @@ package previews
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"link-builder/internal/types"
 	"log"
@@ -10,7 +11,7 @@ import (
 	"github.com/tiendc/go-linkpreview"
 )
 
-// Preview represents the metadata extracted from a URL
+// Preview represents the metadata extracted from a URL.
 type Preview struct {
 	Title       string            `json:"title"`
 	Description string            `json:"description"`
@@ -25,7 +26,6 @@ type LinkPreviewer interface {
 type DefaultLinkPreviewer struct{}
 
 func (d DefaultLinkPreviewer) Parse(url string) (*Preview, error) {
-	//nolint:all
 	result, err := linkpreview.Parse(url)
 	if err != nil {
 		return nil, err
@@ -58,14 +58,40 @@ func (d DefaultLinkPreviewer) Parse(url string) (*Preview, error) {
 	}, nil
 }
 
+// GenerateLinkPreviews generates link previews for a list of URLs and saves the results to a file.
 func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPreviewer) error {
+	// Break down logic into smaller helper functions.
+	urlObjects, err := parseInputFile(inputFilePath)
+	if err != nil {
+		return err
+	}
+
+	cache, err := loadCache(outputFilePath)
+	if err != nil {
+		return err
+	}
+
+	output, err := generatePreviews(urlObjects, cache, previewer)
+	if err != nil {
+		return err
+	}
+
+	return saveOutput(outputFilePath, output)
+}
+
+// Helper functions for GenerateLinkPreviews.
+func parseInputFile(inputFilePath string) ([]struct {
+	ID   int    `json:"id"`
+	Date string `json:"date"`
+	URL  string `json:"url"`
+}, error) {
 	data, err := os.ReadFile(inputFilePath)
 	if err != nil {
-		return fmt.Errorf("reading input file: %w", err)
+		return nil, fmt.Errorf("reading input file: %w", err)
 	}
 
 	if !json.Valid(data) {
-		return fmt.Errorf("input JSON is invalid: %s", inputFilePath)
+		return nil, fmt.Errorf("input JSON is invalid: %s", inputFilePath)
 	}
 
 	var urlObjects []struct {
@@ -73,32 +99,49 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 		Date string `json:"date"`
 		URL  string `json:"url"`
 	}
-	if err := json.Unmarshal(data, &urlObjects); err != nil {
-		return fmt.Errorf("parsing input JSON: %w", err)
+	if err = json.Unmarshal(data, &urlObjects); err != nil {
+		return nil, fmt.Errorf("parsing input JSON: %w", err)
 	}
 
+	return urlObjects, nil
+}
+
+func loadCache(outputFilePath string) (map[string]interface{}, error) {
 	cache := make(map[string]interface{})
-	if _, err := os.Stat(outputFilePath); err == nil {
-		cacheData, err := os.ReadFile(outputFilePath)
-		if err != nil {
-			return fmt.Errorf("reading output file: %w", err)
-		}
-		if len(cacheData) > 0 {
-			if err := json.Unmarshal(cacheData, &cache); err != nil {
-				var cacheArray []types.LinkPreviewOutput
-				if err := json.Unmarshal(cacheData, &cacheArray); err == nil {
-					for _, item := range cacheArray {
-						cache[item.URL] = item.Preview
-					}
-				} else if string(cacheData) == "[]" {
-					cache = make(map[string]interface{})
-				} else {
-					return fmt.Errorf("parsing output JSON: %w", err)
-				}
+	if _, err := os.Stat(outputFilePath); err != nil {
+		return nil, fmt.Errorf("failed to stat output file: %w", err)
+	}
+
+	cacheData, cacheReadErr := os.ReadFile(outputFilePath)
+	if cacheReadErr != nil {
+		return nil, fmt.Errorf("reading output file: %w", cacheReadErr)
+	}
+
+	if len(cacheData) == 0 {
+		return cache, nil
+	}
+
+	if err := json.Unmarshal(cacheData, &cache); err != nil {
+		var cacheArray []types.LinkPreviewOutput
+		if err = json.Unmarshal(cacheData, &cacheArray); err == nil {
+			for _, item := range cacheArray {
+				cache[item.URL] = item.Preview
 			}
+		} else if string(cacheData) == "[]" {
+			cache = make(map[string]interface{})
+		} else {
+			return nil, fmt.Errorf("parsing output JSON: %w", err)
 		}
 	}
 
+	return cache, nil
+}
+
+func generatePreviews(urlObjects []struct {
+	ID   int    `json:"id"`
+	Date string `json:"date"`
+	URL  string `json:"url"`
+}, cache map[string]interface{}, previewer LinkPreviewer) ([]types.LinkPreviewOutput, error) {
 	totalURLs := len(urlObjects)
 	cachedCount := 0
 	for _, urlObj := range urlObjects {
@@ -123,7 +166,9 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 				continue
 			}
 
-			if parsedPreview.Title == "" && parsedPreview.Description == "" && (parsedPreview.OGMeta == nil && parsedPreview.TwitterMeta == nil) {
+			if parsedPreview.Title == "" &&
+				parsedPreview.Description == "" &&
+				(parsedPreview.OGMeta == nil && parsedPreview.TwitterMeta == nil) {
 				log.Printf("Skipping invalid preview for %s", urlObj.URL)
 				continue
 			}
@@ -143,16 +188,23 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 			URL:     urlObj.URL,
 			Preview: preview,
 		})
-
-		outputData, err := json.MarshalIndent(output, "", "  ")
-		if err != nil {
-			return fmt.Errorf("marshaling intermediate output JSON: %w", err)
-		}
-		if err := os.WriteFile(outputFilePath, outputData, 0644); err != nil {
-			return fmt.Errorf("writing intermediate output file: %w", err)
-		}
 	}
 
-	log.Printf("Link previews successfully generated and saved to %s", outputFilePath)
+	if len(output) == 0 {
+		log.Println("No valid previews generated.")
+		return nil, errors.New("no valid previews generated")
+	}
+
+	return output, nil
+}
+
+func saveOutput(outputFilePath string, output []types.LinkPreviewOutput) error {
+	outputData, err := json.MarshalIndent(output, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshaling output JSON: %w", err)
+	}
+	if err = os.WriteFile(outputFilePath, outputData, 0600); err != nil {
+		return fmt.Errorf("writing output file: %w", err)
+	}
 	return nil
 }
