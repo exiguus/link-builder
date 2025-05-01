@@ -71,13 +71,26 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 		return err
 	}
 
-	output, err := generatePreviews(urlObjects, cache, previewer)
+	output, err := generatePreviews(urlObjects, cache, previewer, outputFilePath)
 	if err != nil {
 		return err
 	}
 
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Program interrupted. Writing current output to file.")
+			if writeErr := saveOutput(outputFilePath, output); writeErr != nil {
+				log.Printf("Failed to write output file on interrupt: %v", writeErr)
+			}
+			panic(r) // Re-throw the panic after handling
+		}
+	}()
+
 	if len(output) == 0 {
-		log.Println("No valid previews generated.")
+		log.Println("No valid previews generated. Writing empty output file.")
+		if writeErr := saveOutput(outputFilePath, output); writeErr != nil {
+			return fmt.Errorf("failed to write empty output file: %w", writeErr)
+		}
 		return errors.New("no valid previews generated")
 	}
 
@@ -139,6 +152,9 @@ func loadCache(outputFilePath string) (map[string]interface{}, error) {
 		if closeErr := emptyFile.Close(); closeErr != nil {
 			return nil, fmt.Errorf("failed to close output file: %w", closeErr)
 		}
+	} else if err != nil {
+		log.Printf("Error checking file: %s, error: %v", outputFilePath, err)
+		return nil, fmt.Errorf("error checking output file: %w", err)
 	}
 
 	cacheData, cacheReadErr := os.ReadFile(outputFilePath)
@@ -166,11 +182,15 @@ func loadCache(outputFilePath string) (map[string]interface{}, error) {
 	return cache, nil
 }
 
+func LoadCache(outputFilePath string) (map[string]interface{}, error) {
+	return loadCache(outputFilePath)
+}
+
 func generatePreviews(urlObjects []struct {
 	ID   int    `json:"id"`
 	Date string `json:"date"`
 	URL  string `json:"url"`
-}, cache map[string]interface{}, previewer LinkPreviewer) ([]types.LinkPreviewOutput, error) {
+}, cache map[string]interface{}, previewer LinkPreviewer, outputFilePath string) ([]types.LinkPreviewOutput, error) {
 	totalURLs := len(urlObjects)
 	cachedCount := 0
 	for _, urlObj := range urlObjects {
@@ -222,6 +242,11 @@ func generatePreviews(urlObjects []struct {
 			URL:     urlObj.URL,
 			Preview: preview,
 		})
+
+		// Write the current state of the output to the file after processing each URL
+		if writeErr := saveOutput(outputFilePath, output); writeErr != nil {
+			log.Printf("Failed to write output file after processing URL %s: %v", urlObj.URL, writeErr)
+		}
 	}
 
 	if len(output) == 0 {
@@ -241,4 +266,8 @@ func saveOutput(outputFilePath string, output []types.LinkPreviewOutput) error {
 		return fmt.Errorf("writing output file: %w", err)
 	}
 	return nil
+}
+
+func SaveOutput(outputFilePath string, output []types.LinkPreviewOutput) error {
+	return saveOutput(outputFilePath, output)
 }

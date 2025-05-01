@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"link-builder/internal/previews"
+	"link-builder/internal/types"
 	"link-builder/internal/utils"
 )
 
@@ -131,5 +132,71 @@ func TestParseInputFile(t *testing.T) {
 	_, err = previews.ParseInputFile(tempFile)
 	if err == nil {
 		t.Errorf("Expected error for missing fields, got nil")
+	}
+}
+
+func TestLoadCache(t *testing.T) {
+	// Test with non-existent file
+	nonExistentFile := "non_existent.json"
+	t.Logf("Testing non-existent file: %s", nonExistentFile)
+
+	// Ensure the file does not exist before the test
+	if _, err := os.Stat(nonExistentFile); err == nil {
+		os.Remove(nonExistentFile)
+	}
+
+	_, err := previews.LoadCache(nonExistentFile)
+	if err != nil {
+		t.Errorf("Expected no error for non-existent file, got: %v", err)
+	}
+
+	// Verify the file was created
+	_, statErr := os.Stat(nonExistentFile)
+	if os.IsNotExist(statErr) {
+		t.Errorf("Expected file to be created, but it does not exist: %s", nonExistentFile)
+	}
+	defer os.Remove(nonExistentFile)
+
+	// Test with empty file
+	tempFile := utils.CreateTempFile(t, "", "empty_cache.json")
+	defer os.Remove(tempFile)
+
+	cache, err := previews.LoadCache(tempFile)
+	if err != nil {
+		t.Errorf("Expected no error for empty file, got: %v", err)
+	}
+	if len(cache) != 0 {
+		t.Errorf("Expected empty cache, got: %+v", cache)
+	}
+
+	// Test with invalid JSON
+	invalidContent := "invalid-json"
+	tempFile = utils.CreateTempFile(t, invalidContent, "invalid_cache.json")
+	defer os.Remove(tempFile)
+
+	_, err = previews.LoadCache(tempFile)
+	if err == nil {
+		t.Errorf("Expected error for invalid JSON, got nil")
+	}
+}
+
+func TestSaveOutput(t *testing.T) {
+	// Test with valid output
+	output := []types.LinkPreviewOutput{
+		{ID: 1, Date: "2025-05-01", URL: "http://example.com", Preview: map[string]interface{}{"title": "Example"}},
+	}
+	tempFile := utils.CreateTempFile(t, "", "valid_output.json")
+	defer os.Remove(tempFile)
+
+	err := previews.SaveOutput(tempFile, output)
+	if err != nil {
+		t.Errorf("Expected no error, got: %v", err)
+	}
+
+	// Test with invalid file path
+	invalidFilePath := "/invalid/path/output.json"
+	err = previews.SaveOutput(invalidFilePath, output)
+	if err == nil {
+		t.Errorf("Expected error for invalid file path, got nil")
 	}
 }
