@@ -45,8 +45,8 @@ func validateURL(url string) bool {
 	return utils.IsValidURL(url)
 }
 
-func RemoveSessionQueryStrings(validURLs map[string]bool) map[string]bool {
-	updatedURLs := make(map[string]bool)
+func ProcessURLs(validURLs map[string]bool) map[string]bool {
+	processedURLs := make(map[string]bool)
 	for urlStr := range validURLs {
 		if semicolonIndex := strings.Index(urlStr, ";jsessionid="); semicolonIndex != -1 {
 			urlStr = urlStr[:semicolonIndex]
@@ -61,20 +61,13 @@ func RemoveSessionQueryStrings(validURLs map[string]bool) map[string]bool {
 		for key := range query {
 			if strings.Contains(strings.ToLower(key), "session") {
 				query.Del(key)
+				log.Printf("Warning: URL contains 'session': %s", urlStr)
 			}
 		}
 		parsedURL.RawQuery = query.Encode()
-		updatedURLs[parsedURL.String()] = true
+		processedURLs[parsedURL.String()] = true
 	}
-	return updatedURLs
-}
-
-func WarnIfURLsContainSession(validURLs map[string]bool) {
-	for url := range validURLs {
-		if strings.Contains(strings.ToLower(url), "session") {
-			log.Printf("Warning: URL contains 'session': %s", url)
-		}
-	}
+	return processedURLs
 }
 
 func EnsureUniqueURLs(validURLs map[string]bool, allURLs []struct {

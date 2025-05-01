@@ -21,7 +21,7 @@ func setupMockFiles(t *testing.T, inputData string, inputFileName string) string
 	return tempFile.Name()
 }
 
-func TestMainProgramWithMocks(t *testing.T) {
+func TestMainProgram(t *testing.T) {
 	t.Run("ImportURLs", func(t *testing.T) {
 		mockInput := `{
 			"messages": [
@@ -66,4 +66,8 @@ func TestMainProgramWithMocks(t *testing.T) {
 			t.Fatalf("Failed to run generate-preview: %v\nOutput: %s", err, string(output))
 		}
 	})
+}
+
+func createTempFile(t *testing.T, mockInput, s string) any {
+	panic("unimplemented")
 }

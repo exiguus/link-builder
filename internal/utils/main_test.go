@@ -9,94 +9,96 @@ import (
 	"urls-processor/internal/utils"
 )
 
-func TestHandleError(t *testing.T) {
-	t.Run("NoError", func(t *testing.T) {
-		utils.HandleError(nil, "This should not fail")
+func TestUtils(t *testing.T) {
+	t.Run("HandleError", func(t *testing.T) {
+		t.Run("NoError", func(t *testing.T) {
+			utils.HandleError(nil, "This should not fail")
+		})
 	})
-}
 
-func TestReadJSONFileWithMock(t *testing.T) {
-	mockContent := `{"key": "value"}`
-	tempFile := setupMockFiles(t, mockContent, "mock_read_json.json")
-	defer os.Remove(tempFile)
+	t.Run("ReadJSONFile", func(t *testing.T) {
+		mockContent := `{"key": "value"}`
+		tempFile := utils.CreateTempFile(t, mockContent, "mock_read_json.json")
+		defer os.Remove(tempFile)
 
-	var result map[string]string
-	if err := utils.ReadJSONFile(tempFile, &result); err != nil {
-		t.Errorf("Failed to read JSON file: %v", err)
-	}
-
-	if result["key"] != "value" {
-		t.Errorf("Expected 'value', got '%s'", result["key"])
-	}
-}
-
-func TestWriteJSONFileWithMock(t *testing.T) {
-	mockOutputFile := filepath.Join(t.TempDir(), "mock_output.json")
-	defer os.Remove(mockOutputFile)
-
-	data := map[string]string{"key": "value"}
-	if err := utils.WriteJSONFile(mockOutputFile, data); err != nil {
-		t.Errorf("Failed to write JSON file: %v", err)
-	}
-
-	var result map[string]string
-	if err := utils.ReadJSONFile(mockOutputFile, &result); err != nil {
-		t.Errorf("Failed to read back JSON file: %v", err)
-	}
-
-	if result["key"] != "value" {
-		t.Errorf("Expected 'value', got '%s'", result["key"])
-	}
-}
-
-func TestIsValidURL(t *testing.T) {
-	validURLs := []string{
-		"http://example.com",
-		"https://example.com",
-	}
-	invalidURLs := []string{
-		"ftp://example.com",
-		"example.com",
-		"http://",
-	}
-
-	for _, url := range validURLs {
-		if !utils.IsValidURL(url) {
-			t.Errorf("Expected valid URL, got invalid: %s", url)
+		var result map[string]string
+		if err := utils.ReadJSONFile(tempFile, &result); err != nil {
+			t.Errorf("Failed to read JSON file: %v", err)
 		}
-	}
 
-	for _, url := range invalidURLs {
-		if utils.IsValidURL(url) {
-			t.Errorf("Expected invalid URL, got valid: %s", url)
-		}
-	}
-}
-
-func TestCompileIgnoreRegex(t *testing.T) {
-	t.Run("NoPattern", func(t *testing.T) {
-		os.Setenv("IMPORT_IGNORE", "")
-		regex, err := utils.CompileIgnoreRegex()
-		if err != nil {
-			t.Errorf("Expected no error, got: %v", err)
-		}
-		if regex != nil {
-			t.Errorf("Expected nil regex, got: %v", regex)
+		if result["key"] != "value" {
+			t.Errorf("Expected 'value', got '%s'", result["key"])
 		}
 	})
 
-	t.Run("ValidPattern", func(t *testing.T) {
-		os.Setenv("IMPORT_IGNORE", "^test.*$")
-		regex, err := utils.CompileIgnoreRegex()
-		if err != nil {
-			t.Errorf("Expected no error, got: %v", err)
+	t.Run("WriteJSONFile", func(t *testing.T) {
+		mockOutputFile := filepath.Join(t.TempDir(), "mock_output.json")
+		defer os.Remove(mockOutputFile)
+
+		data := map[string]string{"key": "value"}
+		if err := utils.WriteJSONFile(mockOutputFile, data); err != nil {
+			t.Errorf("Failed to write JSON file: %v", err)
 		}
-		if regex == nil {
-			t.Errorf("Expected valid regex, got nil")
+
+		var result map[string]string
+		if err := utils.ReadJSONFile(mockOutputFile, &result); err != nil {
+			t.Errorf("Failed to read back JSON file: %v", err)
 		}
-		if !regex.MatchString("test123") {
-			t.Errorf("Expected regex to match 'test123', but it did not")
+
+		if result["key"] != "value" {
+			t.Errorf("Expected 'value', got '%s'", result["key"])
 		}
+	})
+
+	t.Run("IsValidURL", func(t *testing.T) {
+		validURLs := []string{
+			"http://example.com",
+			"https://example.com",
+		}
+		invalidURLs := []string{
+			"ftp://example.com",
+			"example.com",
+			"http://",
+		}
+
+		for _, url := range validURLs {
+			if !utils.IsValidURL(url) {
+				t.Errorf("Expected valid URL, got invalid: %s", url)
+			}
+		}
+
+		for _, url := range invalidURLs {
+			if utils.IsValidURL(url) {
+				t.Errorf("Expected invalid URL, got valid: %s", url)
+			}
+		}
+	})
+
+	t.Run("CompileIgnoreRegex", func(t *testing.T) {
+		t.Run("NoPattern", func(t *testing.T) {
+			os.Setenv("IMPORT_IGNORE", "")
+			regex, err := utils.CompileIgnoreRegex()
+			if err != nil {
+				t.Errorf("Expected no error, got: %v", err)
+			}
+			if regex != nil {
+				t.Errorf("Expected nil regex, got: %v", regex)
+			}
+		})
+
+		t.Run("ValidPattern", func(t *testing.T) {
+			os.Setenv("IMPORT_IGNORE", "^test.*$")
+			regex, err := utils.CompileIgnoreRegex()
+			if err != nil {
+				t.Errorf("Expected no error, got: %v", err)
+			}
+			if regex == nil {
+				t.Errorf("Expected valid regex, got nil")
+			}
+			if !regex.MatchString("test123") {
+				t.Errorf("Expected regex to match 'test123', but it did not")
+			}
+		})
 	})
 }
 

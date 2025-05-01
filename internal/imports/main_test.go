@@ -2,6 +2,7 @@ package imports_test
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -59,7 +60,11 @@ func TestProcessImportWithMocks(t *testing.T) {
 		]
 	}`
 
-	inputFilePath, outputFilePath := setupMockImportFiles(t, mockInput)
+	inputFilePath := utils.CreateTempFile(t, mockInput, "mock_import_input.json")
+	defer os.Remove(inputFilePath)
+
+	outputFilePath := filepath.Join(t.TempDir(), "mock_import_output.json")
+	defer os.Remove(outputFilePath)
 
 	imports.ProcessImport(inputFilePath, outputFilePath)
 

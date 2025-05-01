@@ -30,41 +30,43 @@ func validateJSON(t *testing.T, jsonData string) {
 	}
 }
 
-func TestGenerateLinkPreviewsWithMocks(t *testing.T) {
-	mockInput := `[
-		{"id": 1, "date": "2025-05-01", "url": "http://example.com"},
-		{"id": 2, "date": "2025-05-01", "url": "https://example.org"}
-	]`
+func TestPreviews(t *testing.T) {
+	t.Run("GenerateLinkPreviews", func(t *testing.T) {
+		mockInput := `[
+			{"id": 1, "date": "2025-05-01", "url": "http://example.com"},
+			{"id": 2, "date": "2025-05-01", "url": "https://example.org"}
+		]`
 
-	inputFilePath, _ := setupPreviewTestFiles(t, mockInput, "mock_preview_input.json")
-	defer os.Remove(inputFilePath)
+		inputFilePath := utils.CreateTempFile(t, mockInput, "mock_preview_input.json")
+		defer os.Remove(inputFilePath)
 
-	outputFilePath := filepath.Join(t.TempDir(), "mock_preview_output.json")
-	defer os.Remove(outputFilePath)
+		outputFilePath := filepath.Join(t.TempDir(), "mock_preview_output.json")
+		defer os.Remove(outputFilePath)
 
-	previews.GenerateLinkPreviews(inputFilePath, outputFilePath)
+		previews.GenerateLinkPreviews(inputFilePath, outputFilePath)
 
-	outputData, err := ioutil.ReadFile(outputFilePath)
-	if err != nil {
-		t.Fatalf("Failed to read output file: %v", err)
-	}
+		outputData, err := ioutil.ReadFile(outputFilePath)
+		if err != nil {
+			t.Fatalf("Failed to read output file: %v", err)
+		}
 
-	if len(outputData) == 0 {
-		t.Errorf("Output file is empty")
-	}
+		if len(outputData) == 0 {
+			t.Errorf("Output file is empty")
+		}
 
-	var output []struct {
-		ID      int         `json:"id"`
-		Date    string      `json:"date"`
-		URL     string      `json:"url"`
-		Preview interface{} `json:"preview"`
-	}
-	if err := utils.ReadJSONFile(outputFilePath, &output); err != nil {
-		t.Fatalf("Failed to parse output JSON: %v", err)
-	}
+		var output []struct {
+			ID      int         `json:"id"`
+			Date    string      `json:"date"`
+			URL     string      `json:"url"`
+			Preview interface{} `json:"preview"`
+		}
+		if err := utils.ReadJSONFile(outputFilePath, &output); err != nil {
+			t.Fatalf("Failed to parse output JSON: %v", err)
+		}
 
-	expectedCount := 2
-	if len(output) != expectedCount {
-		t.Errorf("Expected %d previews, got %d", expectedCount, len(output))
-	}
+		expectedCount := 2
+		if len(output) != expectedCount {
+			t.Errorf("Expected %d previews, got %d", expectedCount, len(output))
+		}
+	})
 }

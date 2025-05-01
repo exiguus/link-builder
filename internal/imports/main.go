@@ -61,7 +61,7 @@ func ProcessImport(importInputFilePath, importOutputFilePath string) {
 		ignoreRegex,
 	)
 
-	validURLs = validation.RemoveSessionQueryStrings(validURLs)
+	validURLs = validation.ProcessURLs(validURLs)
 	validURLs = validation.EnsureUniqueURLs(validURLs, allURLs)
 
 	// Log statistics
