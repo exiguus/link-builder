@@ -60,7 +60,7 @@ func (d DefaultLinkPreviewer) Parse(url string) (*Preview, error) {
 func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPreviewer) {
 	data, err := os.ReadFile(inputFilePath)
 	if err != nil {
-		utils.HandleError(err, "Failed to read input file")
+		utils.HandleError(err, "Reading input file")
 	}
 
 	if !json.Valid(data) {
@@ -72,12 +72,12 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 		Date string `json:"date"`
 		URL  string `json:"url"`
 	}
-	utils.HandleError(json.Unmarshal(data, &urlObjects), "Failed to parse input JSON")
+	utils.HandleError(json.Unmarshal(data, &urlObjects), "Parsing input JSON")
 
 	cache := make(map[string]interface{})
 	if _, err := os.Stat(outputFilePath); err == nil {
 		cacheData, err := os.ReadFile(outputFilePath)
-		utils.HandleError(err, "Failed to read output file")
+		utils.HandleError(err, "Reading output file")
 		if len(cacheData) > 0 {
 			if err := json.Unmarshal(cacheData, &cache); err != nil {
 				var cacheArray []types.LinkPreviewOutput
@@ -88,7 +88,7 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 				} else if string(cacheData) == "[]" {
 					cache = make(map[string]interface{})
 				} else {
-					utils.HandleError(err, "Failed to parse output JSON")
+					utils.HandleError(err, "Parsing output JSON")
 				}
 			}
 		}
@@ -140,8 +140,8 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 		})
 
 		outputData, err := json.MarshalIndent(output, "", "  ")
-		utils.HandleError(err, "Failed to marshal intermediate output JSON")
-		utils.HandleError(os.WriteFile(outputFilePath, outputData, 0644), "Failed to write intermediate output file")
+		utils.HandleError(err, "Marshaling intermediate output JSON")
+		utils.HandleError(os.WriteFile(outputFilePath, outputData, 0644), "Writing intermediate output file")
 	}
 
 	log.Printf("Link previews successfully generated and saved to %s", outputFilePath)

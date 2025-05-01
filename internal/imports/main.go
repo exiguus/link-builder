@@ -18,7 +18,7 @@ func ProcessImport(importInputFilePath, importOutputFilePath string) {
 		} `json:"messages"`
 	}
 	err := utils.ReadJSONFile(importInputFilePath, &input)
-	utils.HandleError(err, "Failed to read and parse input JSON file")
+	utils.HandleError(err, "Reading and parsing input JSON file")
 
 	allURLs := []struct {
 		ID   int    `json:"id"`

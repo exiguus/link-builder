@@ -4,18 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"net/url"
 	"os"
 	"regexp"
 )
 
-var httpClient = &http.Client{}
-
 // Exported HandleError function
-func HandleError(err error, message string) {
+func HandleError(err error, context string) {
 	if err != nil {
-		log.Fatalf("%s: %v", message, err)
+		log.Fatalf("[ERROR] %s: %v", context, err)
 	}
 }
 
