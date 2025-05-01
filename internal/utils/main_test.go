@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"urls-processor/internal/utils"
+	"link-builder/internal/utils"
 )
 
 func TestUtils(t *testing.T) {

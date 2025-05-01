@@ -1,4 +1,4 @@
-module urls-processor
+module link-builder
 
 go 1.23.5
 

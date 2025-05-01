@@ -3,9 +3,9 @@ package previews
 import (
 	"encoding/json"
 	"fmt"
+	"link-builder/internal/types"
 	"log"
 	"os"
-	"urls-processor/internal/types"
 
 	"github.com/tiendc/go-linkpreview"
 )
@@ -25,6 +25,7 @@ type LinkPreviewer interface {
 type DefaultLinkPreviewer struct{}
 
 func (d DefaultLinkPreviewer) Parse(url string) (*Preview, error) {
+	//nolint:all
 	result, err := linkpreview.Parse(url)
 	if err != nil {
 		return nil, err

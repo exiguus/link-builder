@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"urls-processor/internal/previews"
-	"urls-processor/internal/utils"
+	"link-builder/internal/previews"
+	"link-builder/internal/utils"
 )
 
 func setupPreviewTestFiles(t *testing.T, inputData string, inputFileName string) (string, string) {

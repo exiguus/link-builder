@@ -2,10 +2,10 @@ package imports
 
 import (
 	"fmt"
+	"link-builder/internal/utils"
+	"link-builder/internal/validation"
 	"log"
 	"os"
-	"urls-processor/internal/utils"
-	"urls-processor/internal/validation"
 )
 
 func ProcessImport(importInputFilePath, importOutputFilePath string) error {

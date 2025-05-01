@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"testing"
 
-	"urls-processor/internal/validation"
+	"link-builder/internal/validation"
 )
 
 func TestValidation(t *testing.T) {

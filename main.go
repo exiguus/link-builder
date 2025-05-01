@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
+	"link-builder/internal/imports"
+	"link-builder/internal/previews"
 	"log"
 	"os"
-	"urls-processor/internal/imports"
-	"urls-processor/internal/previews"
 )
 
 type Config struct {

@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"urls-processor/internal/imports"
-	"urls-processor/internal/utils"
+	"link-builder/internal/imports"
+	"link-builder/internal/utils"
 )
 
 func setupMockImportFiles(t *testing.T, inputData string) (string, string) {

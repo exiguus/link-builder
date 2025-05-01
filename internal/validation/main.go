@@ -2,12 +2,12 @@
 package validation
 
 import (
+	"link-builder/internal/utils"
 	"log"
 	"net/url"
 	"regexp"
 	"strings"
 	"sync/atomic"
-	"urls-processor/internal/utils"
 )
 
 func ValidateURLsConcurrently(urls []string, ignoreRegex *regexp.Regexp) (map[string]bool, int) {
