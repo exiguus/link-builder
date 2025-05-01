@@ -19,7 +19,15 @@ type Config struct {
 }
 
 func loadConfig() Config {
-	config := Config{}
+	config := Config{
+		ImportInputFilePath:   "imports/export.json",
+		ImportOutputFilePath:  "dist/urls.json",
+		ProcessImports:        false,
+		PreviewInputFilePath:  "dist/urls.json",
+		PreviewOutputFilePath: "dist/previews.json",
+		GeneratePreviews:      false,
+		Debug:                 false,
+	}
 
 	flag.StringVar(
 		&config.ImportInputFilePath,
