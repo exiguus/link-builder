@@ -39,6 +39,8 @@ func TestMainProgram(t *testing.T) {
 		mockOutputFile := "mock_import_output.json"
 		defer os.Remove(mockOutputFile)
 
+		t.Setenv("IMPORT_IGNORE", "^https?://example\\.com$") // Set a valid regex pattern for testing
+
 		cmd := exec.Command(
 			"go",
 			"run",
@@ -64,6 +66,11 @@ func TestMainProgram(t *testing.T) {
 
 		mockOutputFile := "mock_preview_output.json"
 		defer os.Remove(mockOutputFile)
+
+		// Pre-create the output file to avoid test failure
+		if _, err := os.Create(mockOutputFile); err != nil {
+			t.Fatalf("Failed to pre-create output file: %v", err)
+		}
 
 		cmd := exec.Command(
 			"go",

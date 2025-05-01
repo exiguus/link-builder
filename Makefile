@@ -18,6 +18,7 @@ setup:
 
 test:
 	@echo "Running tests..."
+	@go clean -testcache
 	@go test ./... -v
 
 lint:
@@ -30,6 +31,7 @@ lint:
 
 coverage:
 	@echo "Running tests with coverage..."
+	@go clean -testcache
 	@go test ./... -coverprofile=coverage.out
 	@go tool cover -func=coverage.out | grep total | awk '{print $$3}' | sed 's/%//' > coverage.txt
 	@COVERAGE=$$(cat coverage.txt); \
