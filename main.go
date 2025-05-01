@@ -3,34 +3,61 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 	"urls-processor/internal/imports"
 	"urls-processor/internal/previews"
 )
 
-func main() {
-	log.Println("Starting the URL Processor program")
+type Config struct {
+	ImportInputFilePath   string
+	ImportOutputFilePath  string
+	ProcessImports        bool
+	PreviewInputFilePath  string
+	PreviewOutputFilePath string
+	GeneratePreviews      bool
+	Debug                 bool
+}
 
-	importInputFilePath := flag.String("import-input", "imports/export.json", "Path to the input JSON file for import/export")
-	importOutputFilePath := flag.String("import-output", "dist/urls.json", "Path to the output JSON file for import/export")
-	processImports := flag.Bool("import-urls", false, "Import urls from import/export JSON file")
+func loadConfig() Config {
+	config := Config{}
 
-	previewInputFilePath := flag.String("preview-input", "dist/urls.json", "Path to the input JSON file containing URLs for previews")
-	previewOutputFilePath := flag.String("preview-output", "dist/previews.json", "Path to the output JSON file for link previews")
-	generatePreviews := flag.Bool("generate-preview", false, "Generate link previews from URLs")
+	flag.StringVar(&config.ImportInputFilePath, "import-input", "imports/export.json", "Path to the input JSON file for import/export")
+	flag.StringVar(&config.ImportOutputFilePath, "import-output", "dist/urls.json", "Path to the output JSON file for import/export")
+	flag.BoolVar(&config.ProcessImports, "import-urls", false, "Import URLs from import/export JSON file")
+
+	flag.StringVar(&config.PreviewInputFilePath, "preview-input", "dist/urls.json", "Path to the input JSON file containing URLs for previews")
+	flag.StringVar(&config.PreviewOutputFilePath, "preview-output", "dist/previews.json", "Path to the output JSON file for link previews")
+	flag.BoolVar(&config.GeneratePreviews, "generate-preview", false, "Generate link previews from URLs")
 
 	flag.Parse()
 
-	if *generatePreviews {
-		previews.GenerateLinkPreviews(*previewInputFilePath, *previewOutputFilePath)
+	if os.Getenv("DEBUG") == "true" {
+		config.Debug = true
+	}
+
+	return config
+}
+
+func main() {
+	log.Println("Starting the URL Processor program")
+
+	config := loadConfig()
+
+	if config.Debug {
+		log.Println("Debug mode enabled")
+	}
+
+	if config.GeneratePreviews {
+		previews.GenerateLinkPreviews(config.PreviewInputFilePath, config.PreviewOutputFilePath)
 		log.Println("URL Processor program completed successfully")
 		return
 	}
 
-	if *processImports {
-		imports.ProcessImport(*importInputFilePath, *importOutputFilePath)
+	if config.ProcessImports {
+		imports.ProcessImport(config.ImportInputFilePath, config.ImportOutputFilePath)
 		log.Println("URL Processor program completed successfully")
 		return
 	}
 
-	log.Println("No valid flags provided. Use -generate-import or -generate-previews to run the program.")
+	log.Println("No valid flags provided. Use -import-urls or -generate-preview to run the program.")
 }
