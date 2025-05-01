@@ -41,7 +41,7 @@ go run . -import-urls -import-input=import/export.json -import-output=dist/urls.
 #### Generate Link Previews
 
 ```bash
-go run . -generate-previews -preview-input=dist/urls.json -preview-output=dist/previews.json
+go run . -generate-preview -preview-input=dist/urls.json -preview-output=dist/previews.json
 ```
 
 ### Environment Variables

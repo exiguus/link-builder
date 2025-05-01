@@ -1,0 +1,74 @@
+# Makefile for managing the project
+
+GO_VERSION := $(shell grep '^go ' go.mod | awk '{print $$2}')
+MOD_NAME := $(shell grep '^module ' go.mod | awk '{print $$2}')
+BUILD_BIN := bin/$(MOD_NAME)
+
+.PHONY: all test lint coverage build run-import build-run-import run-preview build-run-preview run clean setup
+
+all: test lint coverage
+
+setup:
+	@echo "Setting up Go $(GO_VERSION)"
+	@command -v go >/dev/null 2>&1 || { \
+		echo "Go is not installed. Please install Go $(GO_VERSION)"; \
+		exit 1; \
+	}
+	@go mod tidy
+
+test:
+	@echo "Running tests..."
+	@go test ./... -v
+
+lint:
+	@echo "Running golangci-lint..."
+	@command -v golangci-lint >/dev/null 2>&1 || { \
+		echo "Installing golangci-lint..."; \
+		go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
+	}
+	@golangci-lint run ./...
+
+coverage:
+	@echo "Running tests with coverage..."
+	@go test ./... -coverprofile=coverage.out
+	@go tool cover -func=coverage.out | grep total | awk '{print $$3}' | sed 's/%//' > coverage.txt
+	@COVERAGE=$$(cat coverage.txt); \
+	if [ $$(echo "$$COVERAGE < 80" | bc -l) -eq 1 ]; then \
+		echo "Coverage is below 80%: $$COVERAGE%"; \
+		exit 1; \
+	else \
+		echo "Coverage is sufficient: $$COVERAGE%"; \
+	fi
+
+build:
+	@echo "Building the project..."
+	@go build -o $(BUILD_BIN) .
+
+build-run-import:
+	@echo "Running the import process..."
+	@$(BUILD_BIN) -import-urls -import-input=imports/export.json -import-output=dist/urls.json
+
+build-run-preview:
+	@echo "Running the preview generation..."
+	@$(BUILD_BIN) -generate-preview -preview-input=dist/urls.json -preview-output=dist/previews.json
+
+build-run:
+	@echo "Running the application..."
+	make build-run-import && make build-run-preview
+
+run-import:
+	@echo "Running the import process..."
+	@go run . -import-urls -import-input=imports/export.json -import-output=dist/urls.json
+
+run-preview:
+	@echo "Running the preview generation..."
+	@go run . -generate-preview -preview-input=dist/urls.json -preview-output=dist/previews.json
+
+run:
+	@echo "Running the application..."
+	make run-import && make run-preview
+
+clean:
+	@echo "Cleaning up..."
+	@rm -f coverage.out coverage.txt
+	@rm -rf $(BUILD_BIN)
