@@ -29,6 +29,30 @@ func TestReadJSONFile(t *testing.T) {
 	}
 }
 
+func TestReadJSONFile_Errors(t *testing.T) {
+	// Test with a non-existent file
+	t.Run("NonExistentFile", func(t *testing.T) {
+		var result map[string]string
+		err := utils.ReadJSONFile("non_existent_file.json", &result)
+		if err == nil {
+			t.Errorf("Expected error for non-existent file, got nil")
+		}
+	})
+
+	// Test with invalid JSON content
+	t.Run("InvalidJSON", func(t *testing.T) {
+		invalidContent := `{"key": "value"`
+		tempFile := utils.CreateTempFile(t, invalidContent, "invalid_json.json")
+		defer os.Remove(tempFile)
+
+		var result map[string]string
+		err := utils.ReadJSONFile(tempFile, &result)
+		if err == nil {
+			t.Errorf("Expected error for invalid JSON, got nil")
+		}
+	})
+}
+
 func TestWriteJSONFile(t *testing.T) {
 	mockOutputFile := filepath.Join(t.TempDir(), "mock_output.json")
 	data := map[string]string{"key": "value"}
@@ -44,6 +68,28 @@ func TestWriteJSONFile(t *testing.T) {
 	if result["key"] != "value" {
 		t.Errorf("Expected 'value', got '%s'", result["key"])
 	}
+}
+
+func TestWriteJSONFile_Errors(t *testing.T) {
+	// Test with a directory path instead of a file path
+	t.Run("DirectoryPath", func(t *testing.T) {
+		dirPath := t.TempDir()
+		data := map[string]string{"key": "value"}
+		err := utils.WriteJSONFile(dirPath, data)
+		if err == nil {
+			t.Errorf("Expected error for directory path, got nil")
+		}
+	})
+
+	// Test with data that cannot be marshaled into JSON
+	t.Run("UnmarshalableData", func(t *testing.T) {
+		mockOutputFile := filepath.Join(t.TempDir(), "mock_output.json")
+		data := map[string]interface{}{"key": make(chan int)} // Channels cannot be marshaled into JSON
+		err := utils.WriteJSONFile(mockOutputFile, data)
+		if err == nil {
+			t.Errorf("Expected error for unmarshalable data, got nil")
+		}
+	})
 }
 
 func TestIsValidURL(t *testing.T) {
