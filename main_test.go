@@ -45,7 +45,7 @@ func TestMainFunctionWithMocks(t *testing.T) {
 		t.Fatalf("Failed to write input file: %v", err)
 	}
 
-	cmd := exec.Command("go", "run", "main.go", "-import-input="+inputFilePath, "-import-output="+outputFilePath)
+	cmd := exec.Command("go", "run", "main.go", "previews.go", "import.go", "utils.go", "types.go", "validation.go", "-import-input="+inputFilePath, "-import-output="+outputFilePath)
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("Failed to run main program: %v", err)
 	}
@@ -87,9 +87,79 @@ func TestMainFunctionWithMocks(t *testing.T) {
 	}
 }
 
+// TestProcessImport tests the processImport function.
+func TestProcessImport(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "test_process_import")
+	if err != nil {
+		t.Fatalf("Failed to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	inputFilePath := filepath.Join(tempDir, "mock_input.json")
+	outputFilePath := filepath.Join(tempDir, "mock_output.json")
+
+	inputData := `{
+		"messages": [
+			{
+				"text_entities": [
+					{"type": "link", "text": "http://example.com"},
+					{"type": "link", "text": "https://example.org"},
+					{"type": "text", "text": "Not a URL"}
+				]
+			},
+			{
+				"text_entities": [
+					{"type": "link", "text": "http://another-example.com"}
+				]
+			}
+		]
+	}`
+
+	if err := ioutil.WriteFile(inputFilePath, []byte(inputData), 0644); err != nil {
+		t.Fatalf("Failed to write input file: %v", err)
+	}
+
+	processImport(inputFilePath, outputFilePath, false)
+
+	outputData, err := ioutil.ReadFile(outputFilePath)
+	if err != nil {
+		t.Fatalf("Failed to read output file: %v", err)
+	}
+
+	var output []struct {
+		ID   int    `json:"id"`
+		Date string `json:"date"`
+		URL  string `json:"url"`
+	}
+	if err := json.Unmarshal(outputData, &output); err != nil {
+		t.Fatalf("Failed to parse output JSON: %v", err)
+	}
+
+	expectedURLs := map[string]bool{
+		"http://example.com":         true,
+		"https://example.org":        true,
+		"http://another-example.com": true,
+	}
+
+	for _, entry := range output {
+		if entry.URL == "" {
+			t.Errorf("Empty URL found in output: %+v", entry)
+			continue
+		}
+		if !expectedURLs[entry.URL] {
+			t.Errorf("Unexpected URL in output: %s", entry.URL)
+		}
+		delete(expectedURLs, entry.URL)
+	}
+
+	if len(expectedURLs) > 0 {
+		t.Errorf("Missing expected URLs in output: %+v", expectedURLs)
+	}
+}
+
 // TestHelpCommand tests the help command for expected output.
 func TestHelpCommand(t *testing.T) {
-	cmd := exec.Command("go", "run", "main.go", "--help")
+	cmd := exec.Command("go", "run", "main.go", "previews.go", "import.go", "utils.go", "types.go", "validation.go", "--help")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("Failed to run help command: %v", err)
@@ -103,7 +173,7 @@ func TestHelpCommand(t *testing.T) {
 
 // TestInvalidCommand tests the behavior for invalid command-line flags.
 func TestInvalidCommand(t *testing.T) {
-	cmd := exec.Command("go", "run", "main.go", "--invalid-flag")
+	cmd := exec.Command("go", "run", "main.go", "previews.go", "import.go", "utils.go", "types.go", "validation.go", "--invalid-flag")
 	output, err := cmd.CombinedOutput()
 	if err == nil {
 		t.Fatalf("Expected error for invalid flag, but got none")
@@ -253,12 +323,12 @@ func TestInputOutputFlags(t *testing.T) {
 		t.Fatalf("Failed to write input file: %v", err)
 	}
 
-	cmd := exec.Command("go", "run", "main.go", "-import-input="+inputFilePath, "-import-output="+outputFilePath)
+	cmd := exec.Command("go", "run", "main.go", "previews.go", "import.go", "utils.go", "types.go", "validation.go", "-import-input="+inputFilePath, "-import-output="+outputFilePath)
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("Failed to run main program with valid flags: %v", err)
 	}
 
-	cmd = exec.Command("go", "run", "main.go", "-import-input=invalid_input.json", "-import-output="+outputFilePath)
+	cmd = exec.Command("go", "run", "main.go", "previews.go", "import.go", "utils.go", "types.go", "validation.go", "-import-input=invalid_input.json", "-import-output="+outputFilePath)
 	if err := cmd.Run(); err == nil {
 		t.Fatalf("Expected error for invalid input file, but got none")
 	}
@@ -288,7 +358,7 @@ func TestGeneratePreviewsFlag(t *testing.T) {
 		t.Fatalf("Input file does not exist: %s", inputFilePath)
 	}
 
-	cmd := exec.Command("go", "run", "main.go", "-generate-previews", "-preview-input="+inputFilePath, "-preview-output="+outputFilePath)
+	cmd := exec.Command("go", "run", "main.go", "previews.go", "import.go", "utils.go", "types.go", "validation.go", "-generate-previews", "-preview-input="+inputFilePath, "-preview-output="+outputFilePath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("Failed to run main program with -generate-previews flag: %v\nOutput: %s", err, string(output))
