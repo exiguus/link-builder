@@ -48,7 +48,7 @@ func main() {
 	}
 
 	if config.GeneratePreviews {
-		previews.GenerateLinkPreviews(config.PreviewInputFilePath, config.PreviewOutputFilePath)
+		previews.GenerateLinkPreviews(config.PreviewInputFilePath, config.PreviewOutputFilePath, previews.DefaultLinkPreviewer{})
 		log.Println("URL Processor program completed successfully")
 		return
 	}

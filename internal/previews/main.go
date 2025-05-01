@@ -10,7 +10,54 @@ import (
 	"github.com/tiendc/go-linkpreview"
 )
 
-func GenerateLinkPreviews(inputFilePath, outputFilePath string) {
+// Preview represents the metadata extracted from a URL
+type Preview struct {
+	Title       string            `json:"title"`
+	Description string            `json:"description"`
+	OGMeta      map[string]string `json:"og_meta,omitempty"`
+	TwitterMeta map[string]string `json:"twitter_meta,omitempty"`
+}
+
+type LinkPreviewer interface {
+	Parse(url string) (*Preview, error)
+}
+
+type DefaultLinkPreviewer struct{}
+
+func (d DefaultLinkPreviewer) Parse(url string) (*Preview, error) {
+	result, err := linkpreview.Parse(url)
+	if err != nil {
+		return nil, err
+	}
+	twitterMeta := make(map[string]string)
+	if result.TwitterMeta != nil {
+		twitterMeta["title"] = result.TwitterMeta.Title
+		twitterMeta["description"] = result.TwitterMeta.Description
+		twitterMeta["card"] = result.TwitterMeta.Card
+		twitterMeta["site"] = result.TwitterMeta.Site
+		twitterMeta["creator"] = result.TwitterMeta.Creator
+		twitterMeta["image"] = result.TwitterMeta.Image
+	}
+	ogMeta := make(map[string]string)
+	if result.OGMeta != nil {
+		ogMeta["title"] = result.OGMeta.Title
+		ogMeta["type"] = result.OGMeta.Type
+		ogMeta["description"] = result.OGMeta.Description
+		ogMeta["url"] = result.OGMeta.URL
+		if len(result.OGMeta.Images) > 0 {
+			ogMeta["image"] = result.OGMeta.Images[0].URL
+		}
+		ogMeta["site_name"] = result.OGMeta.SiteName
+	}
+	return &Preview{
+		Title:       result.Title,
+		Description: result.Description,
+		OGMeta:      ogMeta,
+		TwitterMeta: twitterMeta,
+	}, nil
+}
+
+func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPreviewer) {
 	data, err := os.ReadFile(inputFilePath)
 	if err != nil {
 		utils.HandleError(err, "Failed to read input file")
@@ -65,7 +112,7 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string) {
 
 		preview, exists := cache[urlObj.URL]
 		if !exists {
-			parsedPreview, err := linkpreview.Parse(urlObj.URL)
+			parsedPreview, err := previewer.Parse(urlObj.URL)
 			if err != nil {
 				log.Printf("Failed to generate preview for %s: %v", urlObj.URL, err)
 				continue

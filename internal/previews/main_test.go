@@ -43,7 +43,8 @@ func TestPreviews(t *testing.T) {
 		outputFilePath := filepath.Join(t.TempDir(), "mock_preview_output.json")
 		defer os.Remove(outputFilePath)
 
-		previews.GenerateLinkPreviews(inputFilePath, outputFilePath)
+		previewer := previews.DefaultLinkPreviewer{}
+		previews.GenerateLinkPreviews(inputFilePath, outputFilePath, previewer)
 
 		outputData, err := ioutil.ReadFile(outputFilePath)
 		if err != nil {
