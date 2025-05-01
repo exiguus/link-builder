@@ -72,10 +72,7 @@ func ProcessImport(importInputFilePath, importOutputFilePath string) error {
 	// Log statistics
 	totalURLs := len(allURLs)
 	invalidURLs := totalURLs - len(validURLs) - ignoredCount
-	log.Printf("Total URLs read: %d", totalURLs)
-	log.Printf("Valid URLs: %d", len(validURLs))
-	log.Printf("Invalid URLs: %d", invalidURLs)
-	log.Printf("Ignored URLs: %d", ignoredCount)
+	logStatistics(totalURLs, len(validURLs), invalidURLs, ignoredCount)
 
 	filteredURLs := []struct {
 		ID   int    `json:"id"`
@@ -95,4 +92,11 @@ func ProcessImport(importInputFilePath, importOutputFilePath string) error {
 
 	log.Printf("URLs successfully processed and saved to %s", importOutputFilePath)
 	return nil
+}
+
+func logStatistics(totalURLs, validURLsCount, invalidURLs, ignoredCount int) {
+	log.Printf("Total URLs read: %d", totalURLs)
+	log.Printf("Valid URLs: %d", validURLsCount)
+	log.Printf("Invalid URLs: %d", invalidURLs)
+	log.Printf("Ignored URLs: %d", ignoredCount)
 }

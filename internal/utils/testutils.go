@@ -5,9 +5,10 @@ import (
 	"testing"
 )
 
-// CreateTempFile creates a temporary file with the given content and returns its path.
-func CreateTempFile(t *testing.T, content string, fileName string) string {
-	tempFile, err := ioutil.TempFile("", fileName)
+// CreateTempFile creates a temporary file with the given content and name for testing purposes.
+func CreateTempFile(t *testing.T, content, name string) string {
+	t.Helper()
+	tempFile, err := ioutil.TempFile("", name)
 	if err != nil {
 		t.Fatalf("Failed to create temporary file: %v", err)
 	}

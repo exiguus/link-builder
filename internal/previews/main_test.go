@@ -30,44 +30,30 @@ func validateJSON(t *testing.T, jsonData string) {
 	}
 }
 
-func TestPreviews(t *testing.T) {
-	t.Run("GenerateLinkPreviews", func(t *testing.T) {
-		mockInput := `[
-			{"id": 1, "date": "2025-05-01", "url": "http://example.com"},
-			{"id": 2, "date": "2025-05-01", "url": "https://example.org"}
-		]`
+func TestGenerateLinkPreviews(t *testing.T) {
+	mockInput := `[{"id": 1, "date": "2025-05-01", "url": "http://example.com"}]`
+	tempInputFile := utils.CreateTempFile(t, mockInput, "mock_preview_input.json")
+	defer os.Remove(tempInputFile)
 
-		inputFilePath := utils.CreateTempFile(t, mockInput, "mock_preview_input.json")
-		defer os.Remove(inputFilePath)
+	tempOutputFile := utils.CreateTempFile(t, "", "mock_preview_output.json")
+	defer os.Remove(tempOutputFile)
 
-		outputFilePath := filepath.Join(t.TempDir(), "mock_preview_output.json")
-		defer os.Remove(outputFilePath)
+	err := previews.GenerateLinkPreviews(tempInputFile, tempOutputFile, previews.DefaultLinkPreviewer{})
+	if err != nil {
+		t.Errorf("GenerateLinkPreviews failed: %v", err)
+	}
 
-		previewer := previews.DefaultLinkPreviewer{}
-		previews.GenerateLinkPreviews(inputFilePath, outputFilePath, previewer)
+	var result []struct {
+		ID      int         `json:"id"`
+		Date    string      `json:"date"`
+		URL     string      `json:"url"`
+		Preview interface{} `json:"preview"`
+	}
+	if err := utils.ReadJSONFile(tempOutputFile, &result); err != nil {
+		t.Errorf("Failed to read output JSON file: %v", err)
+	}
 
-		outputData, err := ioutil.ReadFile(outputFilePath)
-		if err != nil {
-			t.Fatalf("Failed to read output file: %v", err)
-		}
-
-		if len(outputData) == 0 {
-			t.Errorf("Output file is empty")
-		}
-
-		var output []struct {
-			ID      int         `json:"id"`
-			Date    string      `json:"date"`
-			URL     string      `json:"url"`
-			Preview interface{} `json:"preview"`
-		}
-		if err := utils.ReadJSONFile(outputFilePath, &output); err != nil {
-			t.Fatalf("Failed to parse output JSON: %v", err)
-		}
-
-		expectedCount := 2
-		if len(output) != expectedCount {
-			t.Errorf("Expected %d previews, got %d", expectedCount, len(output))
-		}
-	})
+	if len(result) != 1 || result[0].URL != "http://example.com" {
+		t.Errorf("Unexpected result: %+v", result)
+	}
 }

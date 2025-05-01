@@ -33,8 +33,6 @@ func TestUtils(t *testing.T) {
 
 	t.Run("WriteJSONFile", func(t *testing.T) {
 		mockOutputFile := filepath.Join(t.TempDir(), "mock_output.json")
-		defer os.Remove(mockOutputFile)
-
 		data := map[string]string{"key": "value"}
 		if err := utils.WriteJSONFile(mockOutputFile, data); err != nil {
 			t.Errorf("Failed to write JSON file: %v", err)
