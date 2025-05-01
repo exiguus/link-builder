@@ -108,7 +108,24 @@ func parseInputFile(inputFilePath string) ([]struct {
 		return nil, fmt.Errorf("parsing input JSON: %w", err)
 	}
 
+	for _, obj := range urlObjects {
+		if obj.Date == "" {
+			return nil, errors.New("missing required field: Date")
+		}
+		if obj.URL == "" {
+			return nil, errors.New("missing required field: URL")
+		}
+	}
+
 	return urlObjects, nil
+}
+
+func ParseInputFile(inputFilePath string) ([]struct {
+	ID   int    `json:"id"`
+	Date string `json:"date"`
+	URL  string `json:"url"`
+}, error) {
+	return parseInputFile(inputFilePath)
 }
 
 func loadCache(outputFilePath string) (map[string]interface{}, error) {

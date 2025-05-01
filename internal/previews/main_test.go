@@ -98,3 +98,38 @@ func TestGenerateLinkPreviews_EdgeCases(t *testing.T) {
 		}
 	})
 }
+
+func TestParseInputFile(t *testing.T) {
+	// Test with valid input
+	validInput := `[{"id": 1, "date": "2025-05-01", "url": "http://example.com"}]`
+	tempFile := utils.CreateTempFile(t, validInput, "valid_input.json")
+	defer os.Remove(tempFile)
+
+	result, err := previews.ParseInputFile(tempFile)
+	if err != nil {
+		t.Errorf("Expected no error, got: %v", err)
+	}
+	if len(result) != 1 || result[0].URL != "http://example.com" {
+		t.Errorf("Unexpected result: %+v", result)
+	}
+
+	// Test with invalid JSON
+	invalidInput := `[{"id": 1, "date": "2025-05-01", "url": "http://example.com"`
+	tempFile = utils.CreateTempFile(t, invalidInput, "invalid_input.json")
+	defer os.Remove(tempFile)
+
+	_, err = previews.ParseInputFile(tempFile)
+	if err == nil {
+		t.Errorf("Expected error for invalid JSON, got nil")
+	}
+
+	// Test with missing fields
+	missingFieldsInput := `[{"id": 1, "url": "http://example.com"}]`
+	tempFile = utils.CreateTempFile(t, missingFieldsInput, "missing_fields_input.json")
+	defer os.Remove(tempFile)
+
+	_, err = previews.ParseInputFile(tempFile)
+	if err == nil {
+		t.Errorf("Expected error for missing fields, got nil")
+	}
+}
