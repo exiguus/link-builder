@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Common Setup
+        uses: ./.github/actions/common-setup
+
+      - name: Run tests
+        run: make test
+
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Common Setup
+        uses: ./.github/actions/common-setup
+
+      - name: Run coverage
+        run: make coverage
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Common Setup
+        uses: ./.github/actions/common-setup
+
+      - name: Run linting
+        run: make lint

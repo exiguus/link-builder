@@ -1,0 +1,41 @@
+name: Common Setup
+description: |
+  This action sets up the Go environment and installs Make for the CI/CD pipeline.
+  It is used in multiple workflows to ensure a consistent setup across different jobs.
+
+  The action performs the following steps:
+  - Checks out the code
+  - Retrieves the Go version
+  - Sets up Go using the specified version
+  - Installs Make if it is not already installed
+  - Runs the setup command
+
+runs:
+  using: composite
+  steps:
+      - name: Go Version
+        id: go-version
+        shell: bash
+        run: echo "go_version=$(go version | cut -d' ' -f3 | cut -c 3-)" >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "${{ env.go_version }}"
+
+      - name: Install Make
+        shell: bash
+        run: |
+          # install only if not exist
+          if ! command -v make &> /dev/null
+          then
+              echo "make could not be found, installing..."
+              sudo apt-get update
+              sudo apt-get install -y make
+          else
+              echo "make is already installed"
+          fi
+
+      - name: Run setup
+        shell: bash
+        run: make setup
