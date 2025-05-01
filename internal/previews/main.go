@@ -76,6 +76,11 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 		return err
 	}
 
+	if len(output) == 0 {
+		log.Println("No valid previews generated.")
+		return errors.New("no valid previews generated")
+	}
+
 	return saveOutput(outputFilePath, output)
 }
 
@@ -163,6 +168,11 @@ func generatePreviews(urlObjects []struct {
 			parsedPreview, err := previewer.Parse(urlObj.URL)
 			if err != nil {
 				log.Printf("Failed to generate preview for %s: %v", urlObj.URL, err)
+				continue
+			}
+
+			if parsedPreview == nil {
+				log.Printf("Skipping nil preview for %s", urlObj.URL)
 				continue
 			}
 
