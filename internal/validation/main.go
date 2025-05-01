@@ -6,37 +6,57 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"urls-processor/internal/utils"
 )
 
 func ValidateURLsConcurrently(urls []string, ignoreRegex *regexp.Regexp) (map[string]bool, int) {
 	validURLs := make(map[string]bool)
-	var mutex sync.Mutex
-	var ignoredCount int32
+	ignoredCount := int32(0)
+	urlChan := make(chan string, len(urls))
+	resultChan := make(chan struct {
+		url     string
+		isValid bool
+		ignored bool
+	}, len(urls))
 
-	processURL := func(rawURL string) {
-		if ignoreRegex != nil && ignoreRegex.MatchString(rawURL) {
-			atomic.AddInt32(&ignoredCount, 1)
-			return
-		}
-		if validateURL(rawURL) {
-			mutex.Lock()
-			validURLs[rawURL] = true
-			mutex.Unlock()
-		}
-	}
-
-	var wg sync.WaitGroup
 	for _, rawURL := range urls {
-		wg.Add(1)
-		go func(url string) {
-			defer wg.Done()
-			processURL(url)
-		}(rawURL)
+		urlChan <- rawURL
 	}
-	wg.Wait()
+	close(urlChan)
+
+	worker := func() {
+		for rawURL := range urlChan {
+			if ignoreRegex != nil && ignoreRegex.MatchString(rawURL) {
+				resultChan <- struct {
+					url     string
+					isValid bool
+					ignored bool
+				}{url: rawURL, isValid: false, ignored: true}
+				continue
+			}
+			isValid := validateURL(rawURL)
+			resultChan <- struct {
+				url     string
+				isValid bool
+				ignored bool
+			}{url: rawURL, isValid: isValid, ignored: false}
+		}
+	}
+
+	workerCount := 10
+	for i := 0; i < workerCount; i++ {
+		go worker()
+	}
+
+	for range urls {
+		result := <-resultChan
+		if result.ignored {
+			atomic.AddInt32(&ignoredCount, 1)
+		} else if result.isValid {
+			validURLs[result.url] = true
+		}
+	}
 
 	return validURLs, int(ignoredCount)
 }

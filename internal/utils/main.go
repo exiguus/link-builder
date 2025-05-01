@@ -12,7 +12,7 @@ import (
 // Exported HandleError function
 func HandleError(err error, context string) {
 	if err != nil {
-		log.Fatalf("[ERROR] %s: %v", context, err)
+		log.Printf("[ERROR] %s: %v", context, err)
 	}
 }
 
@@ -27,14 +27,23 @@ func ReadJSONFile(filePath string, v interface{}) error {
 	return nil
 }
 
+func CreateDirectoryIfNotExists(dirPath string) error {
+	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", dirPath, err)
+	}
+	return nil
+}
+
 func WriteJSONFile(filePath string, v interface{}) error {
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal JSON to file %s: %w", filePath, err)
 	}
-	if err := os.MkdirAll("dist", os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create output directory: %w", err)
+	dir := "dist"
+	if err := CreateDirectoryIfNotExists(dir); err != nil {
+		return err
 	}
+
 	if err := os.WriteFile(filePath, data, 0644); err != nil {
 		return fmt.Errorf("failed to write file %s: %w", filePath, err)
 	}

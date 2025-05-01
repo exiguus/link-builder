@@ -48,13 +48,19 @@ func main() {
 	}
 
 	if config.GeneratePreviews {
-		previews.GenerateLinkPreviews(config.PreviewInputFilePath, config.PreviewOutputFilePath, previews.DefaultLinkPreviewer{})
+		if err := previews.GenerateLinkPreviews(config.PreviewInputFilePath, config.PreviewOutputFilePath, previews.DefaultLinkPreviewer{}); err != nil {
+			log.Printf("Error generating link previews: %v", err)
+			os.Exit(1)
+		}
 		log.Println("URL Processor program completed successfully")
 		return
 	}
 
 	if config.ProcessImports {
-		imports.ProcessImport(config.ImportInputFilePath, config.ImportOutputFilePath)
+		if err := imports.ProcessImport(config.ImportInputFilePath, config.ImportOutputFilePath); err != nil {
+			log.Printf("Error processing imports: %v", err)
+			os.Exit(1)
+		}
 		log.Println("URL Processor program completed successfully")
 		return
 	}

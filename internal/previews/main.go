@@ -2,10 +2,10 @@ package previews
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"urls-processor/internal/types"
-	"urls-processor/internal/utils"
 
 	"github.com/tiendc/go-linkpreview"
 )
@@ -57,14 +57,14 @@ func (d DefaultLinkPreviewer) Parse(url string) (*Preview, error) {
 	}, nil
 }
 
-func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPreviewer) {
+func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPreviewer) error {
 	data, err := os.ReadFile(inputFilePath)
 	if err != nil {
-		utils.HandleError(err, "Reading input file")
+		return fmt.Errorf("reading input file: %w", err)
 	}
 
 	if !json.Valid(data) {
-		log.Fatalf("Input JSON is invalid: %s", inputFilePath)
+		return fmt.Errorf("input JSON is invalid: %s", inputFilePath)
 	}
 
 	var urlObjects []struct {
@@ -72,12 +72,16 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 		Date string `json:"date"`
 		URL  string `json:"url"`
 	}
-	utils.HandleError(json.Unmarshal(data, &urlObjects), "Parsing input JSON")
+	if err := json.Unmarshal(data, &urlObjects); err != nil {
+		return fmt.Errorf("parsing input JSON: %w", err)
+	}
 
 	cache := make(map[string]interface{})
 	if _, err := os.Stat(outputFilePath); err == nil {
 		cacheData, err := os.ReadFile(outputFilePath)
-		utils.HandleError(err, "Reading output file")
+		if err != nil {
+			return fmt.Errorf("reading output file: %w", err)
+		}
 		if len(cacheData) > 0 {
 			if err := json.Unmarshal(cacheData, &cache); err != nil {
 				var cacheArray []types.LinkPreviewOutput
@@ -88,7 +92,7 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 				} else if string(cacheData) == "[]" {
 					cache = make(map[string]interface{})
 				} else {
-					utils.HandleError(err, "Parsing output JSON")
+					return fmt.Errorf("parsing output JSON: %w", err)
 				}
 			}
 		}
@@ -140,9 +144,14 @@ func GenerateLinkPreviews(inputFilePath, outputFilePath string, previewer LinkPr
 		})
 
 		outputData, err := json.MarshalIndent(output, "", "  ")
-		utils.HandleError(err, "Marshaling intermediate output JSON")
-		utils.HandleError(os.WriteFile(outputFilePath, outputData, 0644), "Writing intermediate output file")
+		if err != nil {
+			return fmt.Errorf("marshaling intermediate output JSON: %w", err)
+		}
+		if err := os.WriteFile(outputFilePath, outputData, 0644); err != nil {
+			return fmt.Errorf("writing intermediate output file: %w", err)
+		}
 	}
 
 	log.Printf("Link previews successfully generated and saved to %s", outputFilePath)
+	return nil
 }

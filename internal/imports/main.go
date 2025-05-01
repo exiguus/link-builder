@@ -1,13 +1,14 @@
 package imports
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"urls-processor/internal/utils"
 	"urls-processor/internal/validation"
 )
 
-func ProcessImport(importInputFilePath, importOutputFilePath string) {
+func ProcessImport(importInputFilePath, importOutputFilePath string) error {
 	var input struct {
 		Messages []struct {
 			Date         string `json:"date"`
@@ -18,7 +19,9 @@ func ProcessImport(importInputFilePath, importOutputFilePath string) {
 		} `json:"messages"`
 	}
 	err := utils.ReadJSONFile(importInputFilePath, &input)
-	utils.HandleError(err, "Reading and parsing input JSON file")
+	if err != nil {
+		return fmt.Errorf("reading and parsing input JSON file: %w", err)
+	}
 
 	allURLs := []struct {
 		ID   int    `json:"id"`
@@ -48,7 +51,9 @@ func ProcessImport(importInputFilePath, importOutputFilePath string) {
 	}
 
 	ignoreRegex, err := utils.CompileIgnoreRegex()
-	utils.HandleError(err, "Failed to compile ignore regex")
+	if err != nil {
+		return fmt.Errorf("compiling ignore regex: %w", err)
+	}
 
 	validURLs, ignoredCount := validation.ValidateURLsConcurrently(
 		func() []string {
@@ -84,7 +89,10 @@ func ProcessImport(importInputFilePath, importOutputFilePath string) {
 	}
 
 	err = utils.WriteJSONFile(importOutputFilePath, filteredURLs)
-	utils.HandleError(err, "Failed to write output JSON file")
+	if err != nil {
+		return fmt.Errorf("writing output JSON file: %w", err)
+	}
 
 	log.Printf("URLs successfully processed and saved to %s", importOutputFilePath)
+	return nil
 }
