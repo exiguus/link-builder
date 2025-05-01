@@ -28,7 +28,7 @@ type DefaultLinkPreviewer struct{}
 func (d DefaultLinkPreviewer) Parse(url string) (*Preview, error) {
 	result, err := linkpreview.Parse(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error parsing link preview: %w", err)
 	}
 	twitterMeta := make(map[string]string)
 	if result.TwitterMeta != nil {
