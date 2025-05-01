@@ -23,11 +23,11 @@ test:
 
 lint:
 	@echo "Running golangci-lint..."
-	@command -v golangci-lint >/dev/null 2>&1 || { \
+	@command -v bin/golangci-lint >/dev/null 2>&1 || { \
 		echo "Installing golangci-lint..."; \
 		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s v2.1.5; \
 	}
-	@golangci-lint run ./...
+	@bin/golangci-lint run ./...
 
 coverage:
 	@echo "Running tests with coverage..."
