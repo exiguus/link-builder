@@ -64,5 +64,9 @@ func CompileIgnoreRegex() (*regexp.Regexp, error) {
 	if ignorePattern == "" {
 		return nil, errors.New("no valid data found")
 	}
-	return regexp.Compile(ignorePattern)
+	compiledRegex, err := regexp.Compile(ignorePattern)
+	if err != nil {
+		return nil, fmt.Errorf("failed to compile regex: %w", err)
+	}
+	return compiledRegex, nil
 }
