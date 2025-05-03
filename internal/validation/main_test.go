@@ -1,9 +1,10 @@
 package validation_test
 
 import (
-	"link-builder/internal/validation"
 	"regexp"
 	"testing"
+
+	"link-builder/internal/validation"
 )
 
 func TestIgnoreRegex(t *testing.T) {

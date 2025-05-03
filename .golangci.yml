@@ -25,7 +25,7 @@ formatters:
 
     ## you may want to enable
     #- gci # checks if code and import statements are formatted, with additional rules
-    #- gofmt # checks if the code is formatted according to 'gofmt' command
+    - gofmt # checks if the code is formatted according to 'gofmt' command
 
     ## disabled
     #- gofumpt # [replaced by goimports, gofumports is not available yet] checks if code and import statements are formatted, with additional rules
@@ -37,7 +37,7 @@ formatters:
       # with the given prefixes are grouped after 3rd-party packages.
       # Default: []
       local-prefixes:
-        - github.com/my/project
+        - github.com/exiguus
 
     golines:
       # Target maximum line length.

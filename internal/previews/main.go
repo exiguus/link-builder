@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"link-builder/internal/types"
 	"log"
 	"os"
 
 	"github.com/tiendc/go-linkpreview"
+
+	"link-builder/internal/types"
 )
 
 // Preview represents the metadata extracted from a URL.
