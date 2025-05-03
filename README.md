@@ -56,28 +56,45 @@ go run . -generate-preview -preview-input=dist/urls.json -preview-output=dist/pr
 ### Prerequisites
 
 - Go 1.24.2 or later.
+- Make (optional): For running Makefile commands.
 
-### Tests
-
-Run all tests:
+### Setup and Hooks
 
 ```bash
-go test -v ./...
+make setup
+make hooks
 ```
+
+The pre-commit hook will run tests and linting before each commit. You can also run them manually:
+
+```bash
+make test
+make lint
+```
+
+or
+
+```bash
+make lint-fix
+```
+
+to automatically fix linting issues.
 
 ### Project Structure
 
-```plain
+```bash
+$ tree -d
 .
 ├── bin
 ├── dist
 ├── imports
-└── internal
-    ├── imports
-    ├── previews
-    ├── types
-    ├── utils
-    └── validation
+├── internal
+│   ├── imports
+│   ├── previews
+│   ├── types
+│   ├── utils
+│   └── validation
+└── scripts
 ```
 
 ## License

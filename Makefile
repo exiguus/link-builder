@@ -16,6 +16,12 @@ setup:
 	}
 	@go mod tidy
 
+hooks:
+	@echo "Setting up git hooks..."
+	@mkdir -p .git/hooks
+	@ln -sf ../../scripts/pre-commit.sh .git/hooks/pre-commit
+	@echo "Git hooks set up successfully."
+
 test:
 	@echo "Running tests..."
 	@go clean -testcache
@@ -28,6 +34,14 @@ lint:
 		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s v2.1.5; \
 	}
 	@bin/golangci-lint run ./...
+
+lint-fix:
+	@echo "Running golangci-lint with fix..."
+	@command -v bin/golangci-lint >/dev/null 2>&1 || { \
+		echo "Installing golangci-lint..."; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s v2.1.5; \
+	}
+	@bin/golangci-lint run --fix ./...
 
 coverage:
 	@echo "Running tests with coverage..."
