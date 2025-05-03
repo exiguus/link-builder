@@ -1,6 +1,6 @@
 module link-builder
 
-go 1.23.5
+go 1.24.2
 
 require github.com/tiendc/go-linkpreview v0.0.0-20240619195214-ed28db0d225e
 
