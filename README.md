@@ -55,7 +55,7 @@ go run . -generate-preview -preview-input=dist/urls.json -preview-output=dist/pr
 
 ### Prerequisites
 
-- Go 1.23.5 or later.
+- Go 1.24.2 or later.
 
 ### Tests
 
