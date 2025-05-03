@@ -41,6 +41,7 @@ coverage:
 	else \
 		echo "Coverage is sufficient: $$COVERAGE%"; \
 	fi
+	@rm -f coverage.out coverage.txt
 
 build:
 	@echo "Building the project..."
