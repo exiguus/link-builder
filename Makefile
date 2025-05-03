@@ -19,6 +19,7 @@ setup:
 hooks:
 	@echo "Setting up git hooks..."
 	@mkdir -p .git/hooks
+	@ln -sf ../../scripts/commit-msg.sh .git/hooks/commit-msg
 	@ln -sf ../../scripts/pre-commit.sh .git/hooks/pre-commit
 	@echo "Git hooks set up successfully."
 

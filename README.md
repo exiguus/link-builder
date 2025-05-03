@@ -80,6 +80,8 @@ make lint-fix
 
 to automatically fix linting issues.
 
+The commit-msg hook will ensure that your commit messages follow the conventional commit format. If you want to skip this check, you can use the `--no-verify` flag when committing.
+
 ### Project Structure
 
 ```bash
