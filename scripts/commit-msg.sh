@@ -1,7 +1,7 @@
 #!/bin/bash
 REGEX="^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9-]+\))?!?: .+"
 
-FILE=`cat $1` # File containing the commit message
+FILE=$(cat "$1") # File containing the commit message
 
 echo "Commit Message: ${FILE}"
 
