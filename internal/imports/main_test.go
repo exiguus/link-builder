@@ -37,7 +37,7 @@ func TestProcessImport(t *testing.T) {
 	}
 }
 
-func TestProcessImport_EdgeCases(t *testing.T) {
+func TestProcessImportEdgeCases(t *testing.T) {
 	// Test with invalid JSON
 	invalidJSON := `{"messages": [ { "date": "2025-05-01", "text_entities": [ { "type": "link", "text": "http://example.com" } ] }`
 	tempInputFile := utils.CreateTempFile(t, invalidJSON, "invalid_import_input.json")

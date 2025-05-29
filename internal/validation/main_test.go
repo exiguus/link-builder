@@ -7,6 +7,12 @@ import (
 	"link-builder/internal/validation"
 )
 
+const (
+	exampleCom  = "http://example.com"
+	exampleOrg  = "http://example.org"
+	exampleDate = "2025-05-01"
+)
+
 func TestIgnoreRegex(t *testing.T) {
 	t.Run("ConstPattern", func(t *testing.T) {
 		ignoreRegex := regexp.MustCompile("^http://ignored.com$")
@@ -25,7 +31,7 @@ func TestIgnoreRegex(t *testing.T) {
 
 func TestValidateURLsConcurrently(t *testing.T) {
 	urls := []string{
-		"http://example.com",
+		exampleCom,
 		"https://example.com",
 		"invalid-url",
 	}
@@ -33,7 +39,7 @@ func TestValidateURLsConcurrently(t *testing.T) {
 	ignoreRegex := regexp.MustCompile("^https://.*$")
 	validURLs, ignoredCount := validation.ValidateURLsConcurrently(urls, ignoreRegex)
 
-	if len(validURLs) != 1 || !validURLs["http://example.com"] {
+	if len(validURLs) != 1 || !validURLs[exampleCom] {
 		t.Errorf("Unexpected valid URLs: %+v", validURLs)
 	}
 
@@ -44,9 +50,9 @@ func TestValidateURLsConcurrently(t *testing.T) {
 
 func TestProcessURLs(t *testing.T) {
 	validURLs := map[string]bool{
-		"http://example.com;jsessionid=12345": true,
-		"http://example.com?sessionid=abc":    true,
-		"http://example.com":                  true,
+		exampleCom + ";jsessionid=12345": true,
+		exampleCom + "?sessionid=abc":    true,
+		exampleCom:                       true,
 	}
 
 	processedURLs := validation.ProcessURLs(validURLs)
@@ -55,15 +61,15 @@ func TestProcessURLs(t *testing.T) {
 		t.Errorf("Expected 1 processed URL, got %d", len(processedURLs))
 	}
 
-	if _, exists := processedURLs["http://example.com"]; !exists {
-		t.Errorf("Expected 'http://example.com' in processed URLs")
+	if _, exists := processedURLs[exampleCom]; !exists {
+		t.Errorf("Expected '%s' in processed URLs", exampleCom)
 	}
 }
 
 func TestEnsureUniqueURLs(t *testing.T) {
 	validURLs := map[string]bool{
-		"http://example.com": true,
-		"http://example.org": true,
+		exampleCom: true,
+		exampleOrg: true,
 	}
 
 	allURLs := []struct {
@@ -71,9 +77,9 @@ func TestEnsureUniqueURLs(t *testing.T) {
 		Date string `json:"date"`
 		URL  string `json:"url"`
 	}{
-		{ID: 1, Date: "2025-05-01", URL: "http://example.com"},
-		{ID: 2, Date: "2025-05-01", URL: "http://example.org"},
-		{ID: 3, Date: "2025-05-01", URL: "http://example.net"},
+		{ID: 1, Date: exampleDate, URL: exampleCom},
+		{ID: 2, Date: exampleDate, URL: exampleOrg},
+		{ID: 3, Date: exampleDate, URL: "http://example.net"},
 	}
 
 	uniqueURLs := validation.EnsureUniqueURLs(validURLs, allURLs)
@@ -82,7 +88,7 @@ func TestEnsureUniqueURLs(t *testing.T) {
 		t.Errorf("Expected 2 unique URLs, got %d", len(uniqueURLs))
 	}
 
-	if !uniqueURLs["http://example.com"] || !uniqueURLs["http://example.org"] {
-		t.Errorf("Expected 'http://example.com' and 'http://example.org' in unique URLs")
+	if !uniqueURLs[exampleCom] || !uniqueURLs[exampleOrg] {
+		t.Errorf("Expected '%s' and '%s' in unique URLs", exampleCom, exampleOrg)
 	}
 }

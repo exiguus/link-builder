@@ -9,6 +9,8 @@ import (
 	"link-builder/internal/previews"
 )
 
+const urlsJSONPath = "dist/urls.json"
+
 type Config struct {
 	ImportInputFilePath   string
 	ImportOutputFilePath  string
@@ -22,9 +24,9 @@ type Config struct {
 func loadConfig() Config {
 	config := Config{
 		ImportInputFilePath:   "imports/export.json",
-		ImportOutputFilePath:  "dist/urls.json",
+		ImportOutputFilePath:  urlsJSONPath,
 		ProcessImports:        false,
-		PreviewInputFilePath:  "dist/urls.json",
+		PreviewInputFilePath:  urlsJSONPath,
 		PreviewOutputFilePath: "dist/previews.json",
 		GeneratePreviews:      false,
 		Debug:                 false,
@@ -39,7 +41,7 @@ func loadConfig() Config {
 	flag.StringVar(
 		&config.ImportOutputFilePath,
 		"import-output",
-		"dist/urls.json",
+		urlsJSONPath,
 		"Path to the output JSON file for import/export",
 	)
 	flag.BoolVar(&config.ProcessImports, "import-urls", false, "Import URLs from import/export JSON file")
@@ -47,7 +49,7 @@ func loadConfig() Config {
 	flag.StringVar(
 		&config.PreviewInputFilePath,
 		"preview-input",
-		"dist/urls.json",
+		urlsJSONPath,
 		"Path to the input JSON file containing URLs for previews",
 	)
 	flag.StringVar(

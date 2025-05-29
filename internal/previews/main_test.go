@@ -14,12 +14,14 @@ type MockLinkPreviewer struct{}
 
 var ErrNoValidPreview = errors.New("no valid preview generated")
 
+const exampleComURL = "http://example.com"
+
 func (m MockLinkPreviewer) Parse(_ string) (*previews.Preview, error) {
 	return nil, ErrNoValidPreview // Return a sentinel error instead of nil, nil
 }
 
 func TestGenerateLinkPreviews(t *testing.T) {
-	mockInput := `[{"id": 1, "date": "2025-05-01", "url": "http://example.com"}]`
+	mockInput := `[{"id": 1, "date": "2025-05-01", "url": "` + exampleComURL + `"}]`
 	tempInputFile := utils.CreateTempFile(t, mockInput, "mock_preview_input.json")
 	defer os.Remove(tempInputFile)
 
@@ -41,12 +43,12 @@ func TestGenerateLinkPreviews(t *testing.T) {
 		t.Errorf("Failed to read output JSON file: %v", readErr)
 	}
 
-	if len(result) != 1 || result[0].URL != "http://example.com" {
+	if len(result) != 1 || result[0].URL != exampleComURL {
 		t.Errorf("Unexpected result: %+v", result)
 	}
 }
 
-func TestGenerateLinkPreviews_EdgeCases(t *testing.T) {
+func TestGenerateLinkPreviewsEdgeCases(t *testing.T) {
 	mockPreviewer := previews.DefaultLinkPreviewer{}
 
 	// Test with empty input file
@@ -102,7 +104,7 @@ func TestGenerateLinkPreviews_EdgeCases(t *testing.T) {
 
 func TestParseInputFile(t *testing.T) {
 	// Test with valid input
-	validInput := `[{"id": 1, "date": "2025-05-01", "url": "http://example.com"}]`
+	validInput := `[{"id": 1, "date": "2025-05-01", "url": "` + exampleComURL + `"}]`
 	tempFile := utils.CreateTempFile(t, validInput, "valid_input.json")
 	defer os.Remove(tempFile)
 
@@ -110,12 +112,12 @@ func TestParseInputFile(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected no error, got: %v", err)
 	}
-	if len(result) != 1 || result[0].URL != "http://example.com" {
+	if len(result) != 1 || result[0].URL != exampleComURL {
 		t.Errorf("Unexpected result: %+v", result)
 	}
 
 	// Test with invalid JSON
-	invalidInput := `[{"id": 1, "date": "2025-05-01", "url": "http://example.com"`
+	invalidInput := `[{"id": 1, "date": "2025-05-01", "url": "` + exampleComURL + `"`
 	tempFile = utils.CreateTempFile(t, invalidInput, "invalid_input.json")
 	defer os.Remove(tempFile)
 
@@ -125,7 +127,7 @@ func TestParseInputFile(t *testing.T) {
 	}
 
 	// Test with missing fields
-	missingFieldsInput := `[{"id": 1, "url": "http://example.com"}]`
+	missingFieldsInput := `[{"id": 1, "url": "` + exampleComURL + `"}]`
 	tempFile = utils.CreateTempFile(t, missingFieldsInput, "missing_fields_input.json")
 	defer os.Remove(tempFile)
 
@@ -183,7 +185,7 @@ func TestLoadCache(t *testing.T) {
 func TestSaveOutput(t *testing.T) {
 	// Test with valid output
 	output := []types.LinkPreviewOutput{
-		{ID: 1, Date: "2025-05-01", URL: "http://example.com", Preview: map[string]interface{}{"title": "Example"}},
+		{ID: 1, Date: "2025-05-01", URL: exampleComURL, Preview: map[string]interface{}{"title": "Example"}},
 	}
 	tempFile := utils.CreateTempFile(t, "", "valid_output.json")
 	defer os.Remove(tempFile)

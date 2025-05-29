@@ -29,7 +29,7 @@ func TestReadJSONFile(t *testing.T) {
 	}
 }
 
-func TestReadJSONFile_Errors(t *testing.T) {
+func TestReadJSONFileErrors(t *testing.T) {
 	// Test with a non-existent file
 	t.Run("NonExistentFile", func(t *testing.T) {
 		var result map[string]string
@@ -70,7 +70,7 @@ func TestWriteJSONFile(t *testing.T) {
 	}
 }
 
-func TestWriteJSONFile_Errors(t *testing.T) {
+func TestWriteJSONFileErrors(t *testing.T) {
 	// Test with a directory path instead of a file path
 	t.Run("DirectoryPath", func(t *testing.T) {
 		dirPath := t.TempDir()
