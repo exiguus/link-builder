@@ -183,14 +183,14 @@ linters:
       #
       # Default (applies if no custom rules are defined): Only allow $gostd in all files.
       rules:
-        "deprecated":
+        deprecated:
           # List of file globs that will match this list of settings to compare against.
           # By default, if a path is relative, it is relative to the directory where the golangci-lint command is executed.
           # The placeholder '${base-path}' is substituted with a path relative to the mode defined with `run.relative-path-mode`.
           # The placeholder '${config-path}' is substituted with a path relative to the configuration file.
           # Default: $all
           files:
-            - "$all"
+            - $all
           # List of packages that are not allowed.
           # Entries can be a variable (starting with $), a string prefix, or an exact match (if ending with $).
           # Default: []
@@ -201,13 +201,13 @@ linters:
               desc: Use github.com/google/uuid instead, satori's package is not maintained
             - pkg: github.com/gofrs/uuid$
               desc: Use github.com/gofrs/uuid/v5 or later, it was not a go module before v5
-        "non-test files":
+        non-test files:
           files:
             - "!$test"
           deny:
             - pkg: math/rand$
               desc: Use math/rand/v2 instead, see https://go.dev/blog/randv2
-        "non-main files":
+        non-main files:
           files:
             - "!**/main.go"
           deny:
@@ -344,7 +344,7 @@ linters:
     nolintlint:
       # Exclude following linters from requiring an explanation.
       # Default: []
-      allow-no-explanation: [ funlen, gocognit, golines ]
+      allow-no-explanation: [funlen, gocognit, golines]
       # Enable to require an explanation of nonzero length after each nolint directive.
       # Default: false
       require-explanation: true
@@ -362,7 +362,7 @@ linters:
       # See https://github.com/curioswitch/go-reassign#usage
       # Default: ["EOF", "Err.*"]
       patterns:
-        - ".*"
+        - .*
 
     rowserrcheck:
       # database/sql is always checked.
@@ -420,19 +420,19 @@ linters:
       - common-false-positives
     # Excluding configuration per-path, per-linter, per-text and per-source.
     rules:
-      - source: 'TODO'
-        linters: [ godot ]
-      - text: 'should have a package comment'
-        linters: [ revive ]
-      - text: 'exported \S+ \S+ should have comment( \(or a comment on this block\))? or be unexported'
-        linters: [ revive ]
-      - text: 'package comment should be of the form ".+"'
-        source: '// ?(nolint|TODO)'
-        linters: [ revive ]
-      - text: 'comment on exported \S+ \S+ should be of the form ".+"'
-        source: '// ?(nolint|TODO)'
-        linters: [ revive, staticcheck ]
-      - path: '_test\.go'
+      - source: TODO
+        linters: [godot]
+      - text: should have a package comment
+        linters: [revive]
+      - text: exported \S+ \S+ should have comment( \(or a comment on this block\))? or be unexported
+        linters: [revive]
+      - text: package comment should be of the form .+
+        source: // ?(nolint|TODO)
+        linters: [revive]
+      - text: comment on exported \S+ \S+ should be of the form .+
+        source: // ?(nolint|TODO)
+        linters: [revive, staticcheck]
+      - path: _test\.go
         linters:
           - bodyclose
           - dupl
