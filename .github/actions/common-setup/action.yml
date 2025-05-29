@@ -13,29 +13,29 @@ description: |
 runs:
   using: composite
   steps:
-      - name: Go Version
-        id: go-version
-        shell: bash
-        run: echo "go_version=$(go version | cut -d' ' -f3 | cut -c 3-)" >> $GITHUB_ENV
+    - name: Go Version
+      id: go-version
+      shell: bash
+      run: echo "go_version=$(go version | cut -d' ' -f3 | cut -c 3-)" >> $GITHUB_ENV
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "${{ env.go_version }}"
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: "${{ env.go_version }}"
 
-      - name: Install Make
-        shell: bash
-        run: |
-          # install only if not exist
-          if ! command -v make &> /dev/null
-          then
-              echo "make could not be found, installing..."
-              sudo apt-get update
-              sudo apt-get install -y make
-          else
-              echo "make is already installed"
-          fi
+    - name: Install Make
+      shell: bash
+      run: |
+        # install only if not exist
+        if ! command -v make &> /dev/null
+        then
+            echo "make could not be found, installing..."
+            sudo apt-get update
+            sudo apt-get install -y make
+        else
+            echo "make is already installed"
+        fi
 
-      - name: Run setup
-        shell: bash
-        run: make setup
+    - name: Run setup
+      shell: bash
+      run: make setup
