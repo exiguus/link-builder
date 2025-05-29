@@ -4,9 +4,13 @@ GO_VERSION := $(shell grep '^go ' go.mod | awk '{print $$2}')
 MOD_NAME := $(shell grep '^module ' go.mod | awk '{print $$2}')
 BUILD_BIN := bin/$(MOD_NAME)
 
-.PHONY: all test lint lint-fix fmt qlty-fmt qlty-check qlty-smells qlty-metrics qlty coverage build run-import build-run-import run-preview build-run-preview build-run run clean setup hooks
+.PHONY: all format check test lint lint-fix fmt qlty-fmt qlty-check qlty-smells qlty-metrics qlty coverage build run-import build-run-import run-preview build-run-preview build-run run clean setup hooks
 
-all: fmt test lint coverage qlty
+all: test lint
+
+format: fmt qlty-fmt
+
+check: lint qlty coverage
 
 setup:
 	@echo "Setting up Go $(GO_VERSION)"
@@ -21,6 +25,7 @@ hooks:
 	@mkdir -p .git/hooks
 	@ln -sf ../../scripts/commit-msg.sh .git/hooks/commit-msg
 	@ln -sf ../../scripts/pre-commit.sh .git/hooks/pre-commit
+	@ln -sf ../../scripts/pre-push.sh .git/hooks/pre-push
 	@echo "Git hooks set up successfully."
 
 test:
@@ -95,13 +100,12 @@ qlty-metrics:
 	@qlty metrics --max-depth=5 --sort complexity --all
 
 qlty:
-	@echo "Running all qlty checks..."
+	@echo "Running all qlty all checks..."
 	@command -v qlty >/dev/null 2>&1 || { \
 		echo "Installing qlty..."; \
 		curl https://qlty.sh | bash; \
 		export QLTY_TELEMETRY="off"; \
 	}
-	@make qlty-fmt
 	@make qlty-check
 	@make qlty-smells
 	@make qlty-metrics
