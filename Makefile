@@ -63,52 +63,44 @@ fmt:
 	}
 	@find . -name '*.go' -not -path './vendor/*' -exec goimports -w {} \;
 
-qlty-fmt:
-	@echo "Running quality checks and formatting..."
+setup-qlty:
 	@command -v qlty >/dev/null 2>&1 || { \
 		echo "Installing qlty..."; \
-		curl https://qlty.sh | bash; \
 		export QLTY_TELEMETRY="off"; \
+		if [ "$$GITHUB_ACTIONS" = "true" ]; then \
+			echo "Detected GitHub Actions environment, using script."; \
+			bash ./scripts/install-qlty.sh; \
+		else \
+			curl -fsSL https://qlty.sh | bash; \
+		fi; \
 	}
+
+qlty-fmt:
+	@echo "Running quality checks and formatting..."
+	make setup-qlty
 	@qlty fmt --all
 
 qlty-check:
 	@echo "Running qlty lint..."
-	@command -v qlty >/dev/null 2>&1 || { \
-		echo "Installing qlty..."; \
-		curl https://qlty.sh | bash; \
-		export QLTY_TELEMETRY="off"; \
-	}
+	make setup-qlty
 	@qlty check --sample=12
 
 qlty-smells:
 	@echo "Running qlty smells..."
-	@command -v qlty >/dev/null 2>&1 || { \
-		echo "Installing qlty..."; \
-		curl https://qlty.sh | bash; \
-		export QLTY_TELEMETRY="off"; \
-	}
+	make setup-qlty
 	@qlty smells --all
 
 qlty-metrics:
 	@echo "Running qlty metrics..."
-	@command -v qlty >/dev/null 2>&1 || { \
-		echo "Installing qlty..."; \
-		curl https://qlty.sh | bash; \
-		export QLTY_TELEMETRY="off"; \
-	}
+	make setup-qlty
 	@qlty metrics --max-depth=5 --sort complexity --all
 
 qlty:
 	@echo "Running all qlty all checks..."
-	@command -v qlty >/dev/null 2>&1 || { \
-		echo "Installing qlty..."; \
-		curl https://qlty.sh | bash; \
-		export QLTY_TELEMETRY="off"; \
-	}
-	@make qlty-check
-	@make qlty-smells
-	@make qlty-metrics
+	make setup-qlty
+	make qlty-check
+	make qlty-smells
+	make qlty-metrics
 
 coverage:
 	@echo "Running tests with coverage..."

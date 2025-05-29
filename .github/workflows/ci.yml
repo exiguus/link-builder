@@ -59,5 +59,8 @@ jobs:
       - name: Common Setup
         uses: ./.github/actions/common-setup
 
+      - name: Qlty Setup
+        run: make setup-qlty
+
       - name: Run qlty
         run: make qlty
