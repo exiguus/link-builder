@@ -17,7 +17,7 @@ This Go program processes Telegram messages with URLs, validates them, and gener
 #### Import/Export
 
 - `-import-urls`: Import URLs from a JSON file (default: `imports/export.json`) and output cleaned URLs (default: `dist/urls.json`).
-- `-import-input`: Input JSON file path (default: `import/export.json`).
+- `-import-input`: Input JSON file path (default: `imports/export.json`).
 - `-import-output`: Output JSON file path (default: `dist/urls.json`).
 
 #### Link Previews
@@ -32,7 +32,7 @@ This Go program processes Telegram messages with URLs, validates them, and gener
 
 ```bash
 export IMPORT_IGNORE=".*example.com.*"
-go run . -import-urls -import-input=import/export.json -import-output=dist/urls.json
+go run . -import-urls -import-input=imports/export.json -import-output=dist/urls.json
 ```
 
 #### Generate Previews
