@@ -47,3 +47,16 @@ jobs:
 
       - name: Run linting
         run: make lint
+
+  qlty:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Common Setup
+        uses: ./.github/actions/common-setup
+
+      - name: Run qlty
+        run: make qlty

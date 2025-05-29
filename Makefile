@@ -4,9 +4,9 @@ GO_VERSION := $(shell grep '^go ' go.mod | awk '{print $$2}')
 MOD_NAME := $(shell grep '^module ' go.mod | awk '{print $$2}')
 BUILD_BIN := bin/$(MOD_NAME)
 
-.PHONY: all test lint coverage build run-import build-run-import run-preview build-run-preview run clean setup
+.PHONY: all test lint lint-fix fmt qlty-fmt qlty-check qlty-smells qlty-metrics qlty coverage build run-import build-run-import run-preview build-run-preview build-run run clean setup hooks
 
-all: test lint coverage
+all: fmt test lint coverage qlty
 
 setup:
 	@echo "Setting up Go $(GO_VERSION)"
@@ -43,6 +43,68 @@ lint-fix:
 		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s v2.1.5; \
 	}
 	@bin/golangci-lint run --fix ./...
+
+fmt: 
+	@echo "Formatting code with gofmt..."
+	@command -v gofmt >/dev/null 2>&1 || { \
+		echo "Installing gofmt..."; \
+		go install golang.org/x/tools/cmd/gofmt@latest; \
+	}
+	@find . -name '*.go' -not -path './vendor/*' -exec gofmt -w {} \;
+	@echo "Running goimports..."
+	@command -v goimports >/dev/null 2>&1 || { \
+		echo "Installing goimports..."; \
+		go install golang.org/x/tools/cmd/goimports@latest; \
+	}
+	@find . -name '*.go' -not -path './vendor/*' -exec goimports -w {} \;
+
+qlty-fmt:
+	@echo "Running quality checks and formatting..."
+	@command -v qlty >/dev/null 2>&1 || { \
+		echo "Installing qlty..."; \
+		curl https://qlty.sh | bash; \
+		export QLTY_TELEMETRY="off"; \
+	}
+	@qlty fmt --all
+
+qlty-check:
+	@echo "Running qlty lint..."
+	@command -v qlty >/dev/null 2>&1 || { \
+		echo "Installing qlty..."; \
+		curl https://qlty.sh | bash; \
+		export QLTY_TELEMETRY="off"; \
+	}
+	@qlty check --sample=12
+
+qlty-smells:
+	@echo "Running qlty smells..."
+	@command -v qlty >/dev/null 2>&1 || { \
+		echo "Installing qlty..."; \
+		curl https://qlty.sh | bash; \
+		export QLTY_TELEMETRY="off"; \
+	}
+	@qlty smells --all
+
+qlty-metrics:
+	@echo "Running qlty metrics..."
+	@command -v qlty >/dev/null 2>&1 || { \
+		echo "Installing qlty..."; \
+		curl https://qlty.sh | bash; \
+		export QLTY_TELEMETRY="off"; \
+	}
+	@qlty metrics --max-depth=5 --sort complexity --all
+
+qlty:
+	@echo "Running all qlty checks..."
+	@command -v qlty >/dev/null 2>&1 || { \
+		echo "Installing qlty..."; \
+		curl https://qlty.sh | bash; \
+		export QLTY_TELEMETRY="off"; \
+	}
+	@make qlty-fmt
+	@make qlty-check
+	@make qlty-smells
+	@make qlty-metrics
 
 coverage:
 	@echo "Running tests with coverage..."
